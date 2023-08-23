@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <title>Faculty</title>
+    <style>
+        body{
+            background-color: #1f2437;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Upload Excel File</h1>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+{% endblock %}
