@@ -8,24 +8,35 @@
     <h1>Staffs</h1>
     <table class="rounded-table">
         <thead>
-            <tr>
-                {% set table_head =["Si.No", "ID", "Name", "Department", "Date of Joining", "EL"] %}
-                {% for i in table_head %}
-                    <th>{{ i }}</th>
-                {% endfor %}
-            </tr>
-            <tbody>
+        <tr>
+            {% set table_head =["Si.No", "ID", "Name", "Department", "Date of Joining", "EL", "ML", "MTL", "LOP"] %}
+            {% for i in table_head %}
+                <th>{{ i }}</th>
+            {% endfor %}
+        </tr>
+        <tbody>
 
-                {% for index, i in table_content %}
-                    <tr>
-                        <td>{{ index }}</td>
-                        {% for j in i %}
-                            <td>{{ j }}</td>
-                        {% endfor %}
-                        <td><button onclick="location.href = '/el/{{ i[0] }}';">View</button></td>
-                    </tr>
+        {% for index, i in table_content %}
+            <tr>
+                <td>{{ index }}</td>
+                {% for j in i %}
+                    <td>{{ j }}</td>
                 {% endfor %}
-            </tbody>
+                <td>
+                    <button onclick="location.href = '/el/{{ i[0] }}';">View</button>
+                </td>
+                <td>
+                    <button onclick="location.href = '/ml/{{ i[0] }}';">View</button>
+                </td>
+                <td>
+                    <button onclick="location.href = '/mtl/{{ i[0] }}';">View</button>
+                </td>
+                <td>
+                    <button onclick="location.href = '/lop/{{ i[0] }}';">View</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
         </thead>
     </table>
 

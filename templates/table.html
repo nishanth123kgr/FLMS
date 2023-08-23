@@ -1,0 +1,64 @@
+{% block head %}
+
+    <title>{{ type }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        /* Styling for the no data container */
+        .no-data-container {
+            display: flex;
+            width: 80%;
+            height: 100px;
+            border: 2px dashed #ccc;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            flex-direction: column;
+        }
+
+        /* Styling for the text inside the container */
+        .no-data-container p {
+            margin: 0;
+            font-size: 18px;
+            color: #888;
+        }
+        body{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>{{ type }}</h1>
+    {% if len < 1 %}
+        <div class="no-data-container">
+            <p>No data to display</p>
+            <br>
+            <p><a href="/">Go Back</a></p>
+        </div>
+    {% else %}
+        <table class="rounded-table">
+            <thead>
+            <tr>
+                {% for i in table_head %}
+                    <th>{{ i }}</th>
+                {% endfor %}
+            </tr>
+            <tbody>
+            {% for index, i in table_content %}
+                <tr>
+                    <td>{{ index + 1 }}</td>
+                    {% for j in i %}
+                        <td>{{ j }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+            </thead>
+        </table>
+    {% endif %}
+
+{% endblock %}

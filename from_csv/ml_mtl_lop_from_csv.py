@@ -1,6 +1,5 @@
 import pandas as pd
-
-
+from from_csv.el_from_csv import convert_to_desired_format
 def get_ml_mtl_lop(file):
     # Load Excel data into a DataFrame
     df = pd.read_excel(file, sheet_name=-1)  # -1 selects the last sheet
@@ -15,6 +14,7 @@ def get_ml_mtl_lop(file):
         row = row.fillna("NULL").tolist()
         leave_type = str(row[-1]).lower()
         row = row[:-1]
+        row = [convert_to_desired_format(str(date_str)) for date_str in row]
         if leave_type not in ["el", "-"]:
             if leave_type == "ml":
                 ml.append(row)
