@@ -3,17 +3,17 @@ import os
 
 app = Flask(__name__)
 
-app.config['UPLOAD_FOLDER'] = 'documents'
+app.config['UPLOAD_FOLDER'] = 'E:\\My Drive\\Lave'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'docx'} 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
-@app.route("/documents/upload/<id>/<mid>", methods=['GET', 'POST'])
-def upload(id, mid):
+@app.route("/documents/upload/<dep>/<id>/<mid>", methods=['GET', 'POST'])
+def upload(id, mid, dep):
     if request.method == 'POST':
-        upload_folder = os.path.join(app.config['UPLOAD_FOLDER'], id, mid)
+        upload_folder = os.path.join(app.config['UPLOAD_FOLDER'],dep, id, mid)
         os.makedirs(upload_folder, exist_ok=True)
 
         leave_form = request.files['leave_form']
@@ -45,7 +45,7 @@ def upload(id, mid):
         else:
             flash('Invalid file format', 'error')
 
-        return redirect(url_for('upload', id=id, mid=mid))
+        return redirect(url_for('upload', dep=dep, id=id, mid=mid))
 
     return render_template('upload_document.html')
 
