@@ -10,6 +10,17 @@ db = mysql.connector.connect(host="localhost", port="3306", user="root", databas
 cursor = db.cursor()
 
 
+def get_data(id, type):
+    cursor.execute("select * from %s where id = %s"% (type, id,))
+    result = cursor.fetchall()
+    for i in range(len(result)):
+        result[i] = list(result[i])
+        del result[i][0]
+        del result[i][-1]
+    cursor.reset()
+    return result
+
+
 @app.route("/")
 def display_staff():
     cursor.execute("select * from staff")
@@ -76,13 +87,7 @@ def upload_file():
 
 @app.route("/el/<id>")
 def display_el(id):
-    cursor.execute("select * from el where id = %s", (id,))
-    result = cursor.fetchall()
-    for i in result:
-
-        del i[0]
-        del i[-1]
-    cursor.reset()
+    result = get_data(id, "el")
     return render_template("table.html", table_content=enumerate(result),
                            table_head=["Si.No", "ID", "Department", "From", "To", "Prefix", "Suffix",
                                        "With permission on",
@@ -91,9 +96,7 @@ def display_el(id):
 
 @app.route("/ml/<id>")
 def display_ml(id):
-    cursor.execute("select * from ml where id = %s", (id,))
-    result = cursor.fetchall()
-    cursor.reset()
+    result = get_data(id, "ml")
     return render_template("table.html", table_content=enumerate(result),
                            table_head=["Si.No", "ID", "Department", "From", "To", "Prefix", "Suffix",
                                        "Medical fitness on",
@@ -103,22 +106,18 @@ def display_ml(id):
 
 @app.route("/mtl/<id>")
 def display_mtl(id):
-    cursor.execute("select * from mtl where id = %s", (id,))
-    result = cursor.fetchall()
-    cursor.reset()
+    result = get_data(id, "mtl")
     return render_template("table.html", table_content=enumerate(result),
                            table_head=["Si.No", "ID", "Department", "From", "To", "Prefix", "Suffix",
                                        "Medical fitness on",
                                        "With permission on",
-                                       "Date of join", "Total", "Document"], type="Maternal Leave (MTL)", len=len(result))
+                                       "Date of join", "Total", "Document"], type="Maternal Leave (MTL)",
+                           len=len(result))
 
 
 @app.route("/lop/<id>")
 def display_lop(id):
-    cursor.execute("select * from lop where id = %s", (id,))
-    result = cursor.fetchall()
-    cursor.reset()
-    print(result)
+    result = get_data(id, "lop")
     return render_template("table.html", table_content=enumerate(result),
                            table_head=["Si.No", "ID", "Department", "From", "To", "Prefix", "Suffix",
                                        "Medical fitness on",
@@ -135,6 +134,7 @@ def upload_document(id, type, si_no):
             return "File uploaded successfully"
         return "No file uploaded"
     return render_template("upload_document.html", id=id, type=type, si_no=si_no)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
