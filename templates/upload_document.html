@@ -1,7 +1,34 @@
-{ % block head % }
-<title>Upload Document</title>
-{ % endblock % }
-{ % block content % }
-Hello
-{ % endblock % }
-
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport">
+    <title>Faculty</title>
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/Login-Form-Basic-icons.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
+</head>
+<body class="d-md-flex justify-content-md-start align-items-md-center d-flex align-items-center justify-content-center class-1">
+    <div class="container class-2">
+        <h1 class="class-3">Upload Files</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="col class-4" id="table">
+                <div class="row class-10">
+                    <div class="col justify-content-start class-11"><span class="class-12">Leave Form :</span></div>
+                    <div class="col justify-content-start class-13"><input id="leave_form" enctype="multipart/form-data"  class="form-control class-14" name="leave_form" type="file"></div>
+                </div>
+                <div class="row class-10">
+                    <div class="col justify-content-start class-11"><span class="class-12">Medical Certificate :</span></div>
+                    <div class="col justify-content-start class-13"><input id="medical_certificate" enctype="multipart/form-data"  class="form-control class-14" name="medical_certificate" type="file"></div>
+                </div>
+            </div>
+            <button class="btn btn-primary class-19" onclick="addMoreFiles();" type="button">Add More Files</button>
+            <input class="btn btn-primary class-20" type="submit">
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/untitled.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html>
