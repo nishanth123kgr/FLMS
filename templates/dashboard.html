@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>Faculty Dashboard</title>
+    <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.1/tailwind.min.css"
+            rel="stylesheet"
+    />
+    <link
+            href="https://site-assets.fontawesome.com/releases/v6.4.0/css/all.css"
+            rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
+
+    {# Style for Upload Excel #}
+{% endblock %}
+{% block content %}
+    <div class="m-0 p-0 flex flex-col h-screen overflow-hidden">
+        <div class="top-bar shadow flex justify-between p-3 bg-white relative z-10">
+            <div class="Welcome">
+                <img
+                        src="https://auttvl.ac.in/wp-content/uploads/2021/07/logo.png"
+                        alt=""
+                />
+                <!-- <h2 class="font-bold text-xl text-white">Welcome back, Alumni!</h2>
+                <span class="text-gray-500" id="date"></span> -->
+            </div>
+            <div class="profile-sec flex">
+                <div class="flex flex-col justify-center items-end h-12 pr-3">
+                    <span class="font-bold text-lg">Welcome {{ name }}!</span>
+                    <!-- <span class="text-gray-500">950020000000</span> -->
+                </div>
+                <div class="w-12 h-12 rounded-2xl profile-pic"></div>
+            </div>
+        </div>
+        <div class="flex h-full">
+            <div
+                    class="sidebar flex flex-col items-center overflow-hidden text-white pl-2 w-96"
+            >
+                <a class="flex items-center justify-center h-12 px-3 mt-7">
+                    <div class="h-6 text-xl text-center font-bold">My Dashboard</div>
+                </a>
+                <div class="items flex h-full flex-col w-full mt-2 justify-between">
+                    <div class="flex flex-col items-center w-full mt-3">
+                        {% set sidebarItems = [["Excel Upload", "upload", 'active'], ['Leave Form Upload', "file", ""], ['Attendance Register Upload', 'clipboard-list-check', ''], ['Generate Report', 'file-export', '']] %}
+                        {% for i in sidebarItems %}
+                            <a class="flex items-center justify-start w-full h-12 px-3 mt-2 rounded {{ i[2] }}"
+                               onclick="changeContent(this)" href="#{{ i[0] }}">
+                                <div class="flex ml-6  items-center justify-start">
+                                    <i class="far fa-{{ i[1] }} fs-md ml-1"></i>
+                                    <span class="block ml-3 text-sm font-medium">{{ i[0] }}</span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="main-container w-full flex flex-col">
+                <div class="main w-full overflow-y-scroll overflow-x-hidden">
+                    <div class="section-container">
+                        <!-- Content Goes Here -->
+                        {# Upload Excel Starts #}
+                        <div class="upload-excel container un-hide" id="excel-upload"><h3
+                                class="font-bold mb-5 text-xl">Upload Excel</h3>
+                            <div class="w-full announcement-card">
+                                <table>
+                                    <tr>
+                                        <td>ID</td>
+                                        <td><input type="number" name="id" id="id"
+                                                   class="shadow-md  rounded-lg" maxlength="6"></td>
+                                    </tr>
+                                    {% set inputs = [["Name", "name"], ["Department", "dept"], ["Date Of Joining", "doj"]] %}
+                                    {% for i in inputs %}
+                                        <tr>
+                                            <td>{{ i[0] }}</td>
+                                            <td><input type="text" name="{{ i[1] }}" id="{{ i[1] }}"
+                                                       class="shadow-md  rounded-lg" disabled></td>
+                                        </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <td>Upload Excel</td>
+                                        <td><input type="file" name="file" id="file"></td>
+                                    </tr>
+                                </table>
+                                <button class="hover:bg-blue-700 text-white py-2 px-4 rounded" onclick="uploadExcel()">
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                        {# Upload Excel Ends #}
+
+                        {# Leave Form Upload Starts #}
+                        <div class="leave-form-upload container hide" id="leave-form-upload"><h3
+                                class="font-bold mb-5 text-xl">Leave Form Upload</h3>
+                            <div class="w-full announcement-card">
+                                <table>
+                                    <tr>
+
+                                        <td>ID</td>
+                                        <td><input type="number" name="id" id="idElem"
+                                                   class="shadow-md  rounded-lg mr-2 ml-2" maxlength="6"></td>
+                                        <td>
+                                            <button class="hover:bg-blue-700 text-white py-2 px-4 rounded"
+                                                    onclick="getStaffData(document.getElementById('idElem').value)">
+                                                Search
+                                            </button>
+                                        </td>
+
+                                    </tr>
+                                    <tr>
+
+                                        <td>Name</td>
+                                        <td>
+                                            <input type="text" name="nameElem" id="nameElem"
+                                                   class="shadow-md  rounded-lg mr-2 ml-2" disabled/></td>
+
+                                    </tr>
+                                    <tr>
+
+                                        <td>Department</td>
+                                        <td>
+                                            <input type="text" name="depElem" id="depElem"
+                                                   class="shadow-md  rounded-lg mr-2 ml-2" disabled/></td>
+
+                                    </tr>
+                                    <tr>
+
+                                        <td>Leave Type</td>
+                                        <td>
+                                            <select name="leaveType" id="leaveType"
+                                                    class="shadow-md  rounded-lg mr-2 ml-2">
+                                                <option>Select</option>
+                                                <option value="EL">EL</option>
+                                                <option value="ML">ML</option>
+                                                <option value="MTL">MTL</option>
+                                                <option value="LOP">LOP</option>
+                                            </select>
+                                        </td>
+
+                                    </tr>
+
+                                </table>
+                                <table class="rounded-table my-3" id="leaveTable">
+                                    <thead>
+                                    <tr>
+                                        {% set table_head =["Si.No", "ID", "Name", "Department", "Leave Type", "From", "To", "Document"] %}
+                                        {% for i in table_head %}
+                                            <th>{{ i }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {# Table Content Goes Here #}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+                            {#  #}
+                        </div>
+                        {# Leave Form Upload Ends #}
+
+                        {# Leave Form Upload Modal Starts #}
+                        <div id="myModal" class="modal">
+                            <div class="modal-content">
+                                <span class="close">&times;</span>
+                                <h3 class="font-bold text-lg text-center">Upload</h3>
+                                <div id="inputs">
+                                    <div class="block">
+                                        <label class="block mb-2 font-medium text-gray-900 dark:text-white"
+                                               for="file_input">Leave Form <span
+                                                style="color: red; font-size: large">*</span></label>
+                                        <input class="block w-full mb-2 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                               name="leave_form" id="leave_form" type="file">
+                                    </div>
+                                    <div class="block">
+                                        <label class="block mb-2 font-medium text-gray-900 dark:text-white"
+                                               for="file_input">Medical Certificate</label>
+                                        <input class="block mb-2 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                               name="medical_certificate"
+                                               id="medical_certificate" type="file">
+                                    </div>
+                                </div>
+                                <div class="flex justify-center">
+                                    <button class="hover:bg-blue-700 text-white py-2 mr-1 px-4 rounded"
+                                            onclick="addMoreFile()">Add
+                                        More
+                                    </button>
+                                    <button id="fileSubmitButton" onclick="uploadLeaveFiles(this)" class="hover:bg-blue-700 text-white text-center py-2 px-4 ml-1 rounded">
+                                        Submit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {# Leave Form Upload Modal Ends #}
+
+                        {# Attendance Register Upload Starts #}
+
+                    </div>
+                    <div class="w-full text-sm text-white cpy-right pl-9 bg-black">
+                        © 2023 Anna University Regional Campus Tirunelveli. All rights
+                        reserved.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -6,7 +6,7 @@ body {
     padding: 2% 5%;
 }
 
-.container {
+.index .container {
     max-width: 600px;
     margin: 100px auto;
     padding: 20px;
@@ -16,25 +16,25 @@ body {
     text-align: center;
 }
 
-h1 {
+.index h1 {
     margin-bottom: 20px;
     color: #333;
 }
 
-form {
+.index form {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-input[type="file"] {
+.index input[type="file"] {
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-input[type="submit"] {
+.index input[type="submit"] {
     padding: 10px 20px;
     background-color: #007bff;
     color: #fff;
@@ -44,7 +44,7 @@ input[type="submit"] {
     transition: background-color 0.3s ease;
 }
 
-button:hover {
+.index button:hover {
     background-color: #0056b3;
 }
 
@@ -55,31 +55,47 @@ table.rounded-table {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 
-  }
-  
-  /* Styling for the table head */
-  table.rounded-table thead {
+}
+
+/* Styling for the table head */
+table.rounded-table thead {
     background-color: #1f2437;
     color: white;
-  }
-  
-  /* Styling for table body rows */
-  table.rounded-table tbody tr:nth-child(even) {
+}
+
+/* Styling for table body rows */
+table.rounded-table tbody tr:nth-child(even) {
     background-color: #ecf0f9;
-  }
-  
-  /* Styling for table body cells */
-  table.rounded-table td, table.rounded-table th {
+}
+
+/* Styling for table body cells */
+table.rounded-table td, table.rounded-table th {
     padding: 10px;
-    border: 1px solid #ddd;
+    outline: 1px solid #ddd;
     text-align: center;
-  }
-  
-  .rounded-table button{
+}
+
+.rounded-table button {
     background-color: #0099f7;
     color: #fff;
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
     cursor: pointer;
-  }
+}
+
+.rounded-table th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.rounded-table th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.rounded-table tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+.rounded-table tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
