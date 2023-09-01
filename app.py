@@ -16,10 +16,7 @@ from flask import Flask, render_template, request, redirect, flash, jsonify, ses
 from from_csv.el_from_csv import get_el
 from from_csv.ml_mtl_lop_from_csv import get_ml_mtl_lop
 
-from flask_ngrok import run_with_ngrok
 app = Flask(__name__)
-
-run_with_ngrok(app)
 
 db = mysql.connector.connect(host="localhost", port="3306", user="root", database="facultyleavedb")
 cursor = db.cursor()
@@ -36,6 +33,7 @@ app.config['DRIVE_DIRECTORIES'] = {
     "MCA": drive_directory + "1FwfZAkKwrtv3oJ_N-2DHLpuybjoqlUeD\\MCA",
     "SH": drive_directory + "1LcDBfZ7VSRouXjnJl-_K3at1UI2vT-KH\\SH"
 }
+
 
 def get_data(id, type):
     if session['role'] != 4:
