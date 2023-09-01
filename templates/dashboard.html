@@ -42,7 +42,7 @@
                 </a>
                 <div class="items flex h-full flex-col w-full mt-2 justify-between">
                     <div class="flex flex-col items-center w-full mt-3">
-                        {% set sidebarItems = [["Excel Upload", "upload", 'active'], ['Leave Form Upload', "file", ""], ['Attendance Register Upload', 'clipboard-list-check', ''], ['Generate Report', 'file-export', '']] %}
+                        {% set sidebarItems = [["Excel Upload", "upload", 'active'], ['Leave Form Upload', "file", ""], ['Attendance Upload', 'clipboard-list-check', ''], ['Generate Report', 'file-export', '']] %}
                         {% for i in sidebarItems %}
                             <a class="flex items-center justify-start w-full h-12 px-3 mt-2 rounded {{ i[2] }}"
                                onclick="changeContent(this)" href="#{{ i[0] }}">
@@ -79,8 +79,17 @@
                                     {% endfor %}
                                     <tr>
                                         <td>Upload Excel</td>
-                                        <td><input type="file" name="file" id="file"></td>
+                                        <td><input type="file" name="file" id="excel_file"
+                                                   onchange="getSheetNames(this)"></td>
                                     </tr>
+                                    <tr>
+                                        <td>Sheet Name</td>
+                                        <td>
+                                            <select name="sheet_name" id="sheetName"
+                                                    class="shadow-md  rounded-lg">
+                                                <option>Select</option>
+                                            </select>
+                                        </td>
                                 </table>
                                 <button class="hover:bg-blue-700 text-white py-2 px-4 rounded" onclick="uploadExcel()">
                                     Submit
@@ -99,12 +108,6 @@
                                         <td>ID</td>
                                         <td><input type="number" name="id" id="idElem"
                                                    class="shadow-md  rounded-lg mr-2 ml-2" maxlength="6"></td>
-                                        <td>
-                                            <button class="hover:bg-blue-700 text-white py-2 px-4 rounded"
-                                                    onclick="getStaffData(document.getElementById('idElem').value)">
-                                                Search
-                                            </button>
-                                        </td>
 
                                     </tr>
                                     <tr>
@@ -142,11 +145,12 @@
                                 </table>
                                 <table class="rounded-table my-3" id="leaveTable">
                                     <thead>
-                                    <tr>
-                                        {% set table_head =["Si.No", "ID", "Name", "Department", "Leave Type", "From", "To", "Document"] %}
-                                        {% for i in table_head %}
-                                            <th>{{ i }}</th>
-                                        {% endfor %}
+                                    <tr id="table-head-upload">
+                                        {#Table Head Goes Here#}
+                                        {#                                        {% set table_head =["Si.No", "ID", "Name", "Department", "Leave Type", "From", "To","Prefix From", "Prefix To", "Suffix From", "Suffix To", "Date of Joining", "Total", "Document"] %}#}
+                                        {#                                        {% for i in table_head %}#}
+                                        {#                                            <th>{{ i }}</th>#}
+                                        {#                                        {% endfor %}#}
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -155,6 +159,11 @@
                                     </tbody>
 
                                 </table>
+                                <div class="flex justify-center items-center no-data mt-5" style="display: none">
+                                    <div class="no-data-container">
+                                        <p>No data to display</p>
+                                    </div>
+                                </div>
 
                             </div>
                             {#  #}
@@ -187,7 +196,8 @@
                                             onclick="addMoreFile()">Add
                                         More
                                     </button>
-                                    <button id="fileSubmitButton" onclick="uploadLeaveFiles(this)" class="hover:bg-blue-700 text-white text-center py-2 px-4 ml-1 rounded">
+                                    <button id="fileSubmitButton" onclick="uploadLeaveFiles(this)"
+                                            class="hover:bg-blue-700 text-white text-center py-2 px-4 ml-1 rounded">
                                         Submit
                                     </button>
                                 </div>
@@ -196,6 +206,34 @@
                         {# Leave Form Upload Modal Ends #}
 
                         {# Attendance Register Upload Starts #}
+                        <div class="attendance-register container hide" id="attendance_register">
+                            <h3 class="font-bold mb-5 text-xl">Attendance Register</h3>
+                            <div class="w-full announcement-card">
+                                <div class="block">
+                                    <label class="block mb-2 font-medium text-gray-900 dark:text-white"
+                                           for="attendance_department">Department</label>
+                                    <select class="shadow-md  rounded-lg" id="attendance_department"
+                                            name="attendance_department">
+                                        <option>Select</option>
+                                        <option value="CSE">CSE</option>
+                                        <option value="ECE">ECE</option>
+                                        <option value="EEE">EEE</option>
+                                        <option value="MECH">MECH</option>
+                                        <option value="CIVIL">CIVIL</option>
+                                        <option value="MBA">MBA</option>
+                                        <option value="MCA">MCA</option>
+                                        <option value="SCIENCE AND HUMANITIES">SCIENCE AND HUMANITIES</option>
+                                    </select>
+                                </div>
+                                <div class="block">
+                                    <label class="block mb-2 font-medium text-gray-900 dark:text-white"
+                                           for="file_input">Register Name</label>
+                                    <input class="block mb-2 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                           name="medical_certificate"
+                                           id="register_name" type="text">
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                     <div class="w-full text-sm text-white cpy-right pl-9 bg-black">
@@ -206,5 +244,6 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

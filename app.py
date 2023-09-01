@@ -1,26 +1,41 @@
+import ast
 import datetime
-
-from flask import Flask, render_template, request, redirect, flash, jsonify, session
-from from_csv.el_from_csv import get_el
-from from_csv.ml_mtl_lop_from_csv import get_ml_mtl_lop
-import mysql.connector
-import os, json, ast
+import hashlib
+import json
+import os
 import random
-import string
 import smtplib
+import string
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from datetime import datetime
-import hashlib
 
+import mysql.connector
+import pandas as pd
+from flask import Flask, render_template, request, redirect, flash, jsonify, session
+
+from from_csv.el_from_csv import get_el
+from from_csv.ml_mtl_lop_from_csv import get_ml_mtl_lop
+
+from flask_ngrok import run_with_ngrok
 app = Flask(__name__)
+
+run_with_ngrok(app)
 
 db = mysql.connector.connect(host="localhost", port="3306", user="root", database="facultyleavedb")
 cursor = db.cursor()
 
-app.config['UPLOAD_FOLDER'] = 'D:\\DB_AUT\\Files'
-app.config['SECRET_KEY'] = 'f6f5372c8210fd221e2b4842e51af432'
+drive_directory = "H:\\.shortcut-targets-by-id\\"
 
+app.config['SECRET_KEY'] = 'f6f5372c8210fd221e2b4842e51af432'
+app.config['DRIVE_DIRECTORIES'] = {
+    "CSE": drive_directory + "1BUHQk3y7vWh5b354fI94PVY_pSPxOCa7\\CSE",
+    "ECE": drive_directory + "1sxi1C8tQb4rOj30xLSnubSF8uyNYa4DF\\ECE",
+    "MECH": drive_directory + "1sUWSOGjVJgwECV_5C37EvogdcPbrnRO6\\MECH",
+    "CIVIL": drive_directory + "1_WEgUo8OtmadKQKi8NFKZ0pH7wuPbWDP\\CIVIL",
+    "MBA": drive_directory + "1xCWj4xRnjBGu7fD1Zh2OXSY4LX0bBZsL\\MBA",
+    "MCA": drive_directory + "1FwfZAkKwrtv3oJ_N-2DHLpuybjoqlUeD\\MCA",
+    "SH": drive_directory + "1LcDBfZ7VSRouXjnJl-_K3at1UI2vT-KH\\SH"
+}
 
 def get_data(id, type):
     if session['role'] != 4:
@@ -38,6 +53,7 @@ def get_data(id, type):
 def display_staff():
     if session['role'] != 4:
         return redirect("/login")
+    return redirect("/login")
     cursor.execute("select * from staff")
     result = cursor.fetchall()
     cursor.reset()
@@ -71,6 +87,13 @@ def display_dashboard():
         return redirect("/login")
 
 
+def get_total_days(from_date, to_date):
+    format = "%Y-%m-%d" if "-" in from_date else "%d.%m.%Y" if "." in from_date else "%d/%m/%Y"
+    from_date = datetime.datetime.strptime(from_date, format)
+    to_date = datetime.datetime.strptime(to_date, format)
+    return (to_date - from_date).days + 1
+
+
 @app.route("/staff/upload", methods=["GET", "POST"])
 def upload_file():
     if session['role'] != 4:
@@ -81,40 +104,67 @@ def upload_file():
         uploaded_file = request.files["file"]
         if uploaded_file:
             # Save the uploaded file to a desired location
-            el = get_el(uploaded_file)
-            ml, mtl, lop = get_ml_mtl_lop(uploaded_file)
             info = json.loads(request.form["info"])
-
+            el = get_el(uploaded_file, info["sheetName"])
+            ml, mtl, lop = get_ml_mtl_lop(uploaded_file, info["sheetName"])
             # Update the EL table
-            for i in range(len(el) - 1):
+            print(ml)
+            print(mtl)
+            print(lop)
+            for i in range(len(el)):
                 row = el[i]
+                print(row)
                 try:
+                    total = get_total_days(row[0], row[1])
                     cursor.execute(
-                        'INSERT INTO el (id, dept, `from`, `to`, with_permission_on, date_of_rejoin, total) VALUES (%s, "%s", "%s", "%s", %s, %s, %s)' %
+                        'INSERT INTO el (id, dept, `from`, `to`, from_prefix, to_prefix, from_suffix, to_suffix, date_of_rejoin, total) VALUES ('
+                        '%s, "%s", "%s", "%s", %s, %s, %s, %s, %s, %s)' %
                         (info["id"], info["department"], row[0], row[1],
-                         row[2] if row[2] == 'NULL' else '\'["' + row[2] + '"]\'',
-                         row[3] if row[3] == 'NULL' else '"' + row[3] + '"', row[4]))
+                         row[2][0] if row[2][0] == 'NULL' else '"' + row[2][0] + '"',
+                         row[2][1] if row[2][1] == 'NULL' else '"' + row[2][1] + '"',
+                         row[2][2] if row[2][2] == 'NULL' else '"' + row[2][2] + '"',
+                         row[2][3] if row[2][3] == 'NULL' else '"' + row[2][3] + '"',
+                         row[3] if row[3] == 'NULL' else '"' + row[3] + '"', total))
                     db.commit()
                     cursor.reset()
                 except Exception as e:
-                    return str(e) + " <a href='/'>Go back</a>"
+                    print("Error:", e, "Row:", row)
             # Update the ML, MTL, LOP table
             for name, table in [('ml', ml), ('mtl', mtl), ('lop', lop)]:
                 if table:
                     for i in range(len(table)):
                         row = table[i]
+                        print(row)
                         try:
+                            total = get_total_days(row[0], row[1])
                             cursor.execute(
-                                'INSERT INTO %s (id, dept, `from`, `to`, medical_fittness_on, with_permission_on, doj,total) VALUES (%s, "%s", "%s", "%s",%s, %s, "%s", %s)' %
+                                'INSERT INTO %s (id, dept, `from`, `to`, medical_fittness_on, from_prefix, to_prefix, from_suffix, to_suffix, '
+                                'doj,total) VALUES (%s, "%s", "%s", "%s",%s, %s, %s, %s, %s, "%s", %s)' %
                                 (name, info["id"], info["department"], row[0], row[1],
                                  row[3] if row[3] == 'NULL' else '\'["' + row[3] + '"]\'',
-                                 row[4] if row[4] == 'NULL' else '\'["' + row[4] + '"]\'', row[5], row[2]))
+                                 row[4][0] if row[4][0] == 'NULL' else '"' + row[4][0] + '"',
+                                 row[4][1] if row[4][1] == 'NULL' else '"' + row[4][1] + '"',
+                                 row[4][2] if row[4][2] == 'NULL' else '"' + row[4][2] + '"',
+                                 row[4][3] if row[4][3] == 'NULL' else '"' + row[4][3] + '"',
+                                 row[5], total))
                             db.commit()
                             cursor.reset()
                         except Exception as e:
-                            return str(e) + " <a href='/'>Go back</a>"
+                            print(e)
             return {"status": "success"}
         return {"status": "failed"}
+
+
+@app.route("/staff/get_sheet_names", methods=["POST"])
+def get_sheet_names():
+    if session['role'] != 4:
+        return redirect("/login")
+    uploaded_file = request.files["file"]
+    if uploaded_file:
+        # Save the uploaded file to a desired location
+        sheet_names = pd.ExcelFile(uploaded_file).sheet_names
+        return {"status": "success", "sheet_names": sheet_names}
+    return {"status": "failed"}
 
 
 def normalize_date(obj):
@@ -131,6 +181,7 @@ def normalize_date(obj):
 def display_el(id):
     result = get_data(id, "el")
     if request.method == "POST":
+        print(result)
         return json.dumps(normalize_date(result))
     return render_template("table.html", table_content=enumerate(result),
                            table_head=["Si.No", "ID", "Department", "From", "To", "Prefix", "Suffix",
@@ -186,7 +237,7 @@ def upload_document(dept, id, type, l_id):
     if request.method == "POST":
         uploaded_files = request.files.getlist('files')
         labels = request.form.getlist('fileNames')
-        upload_folder = os.path.join(app.config['UPLOAD_FOLDER'], dept, id, type, l_id)
+        upload_folder = os.path.join(app.config["DRIVE_DIRECTORIES"][dept], id, type, l_id)
         print(upload_folder)
         labels[0] = "leave_form"
         os.makedirs(upload_folder, exist_ok=True)
@@ -282,7 +333,7 @@ def send_html_email(receiver_email, otp, name):
     password = "zgodamlpduxhfnrf"
     subject = "Faculty Login Password Change OTP"
 
-    date = datetime.now().strftime("%B %d, %Y")
+    date = datetime.datetime.now().strftime("%B %d, %Y")
 
     html_content_1 = """
                     <!DOCTYPE html>
@@ -417,4 +468,4 @@ def auth_success():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

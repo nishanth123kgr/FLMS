@@ -67,14 +67,15 @@ idInput.addEventListener('input', async () => {
 
 
 function uploadExcel() {
-    let file = document.getElementById("file").files[0];
+    let file = document.getElementById("excel_file").files[0];
     let formData = new FormData();
     formData.append("file", file);
     formData.append("info", JSON.stringify({
         "id": idInput.value,
         "name": name.value,
         "department": department.value,
-        "doj": doj.value
+        "doj": doj.value,
+        "sheetName": document.getElementById("sheetName").value
     }))
     fetch("/staff/upload", {
         method: "POST",
@@ -117,7 +118,7 @@ async function uploadLeaveFiles(element) {
 }
 
 async function getLeaveDetails(id, type) {
-    if (id.length === 6) {
+    if (id.length === 5) {
         console.log(`/${type.toLowerCase()}/${id}`)
         const response = await fetch(`/${type.toLowerCase()}/${id}`, {
             method: 'POST',
@@ -135,8 +136,22 @@ leaveType.addEventListener("change", () => {
     if (leaveType.value && idElement.value && deptElement.value) {
         let data = getLeaveDetails(idElement.value, leaveType.value);
         data.then((jsonData) => {
-            if (jsonData) {
+            if (jsonData.length !== 0) {
                 console.log(jsonData)
+                let tableHead = ["Si.No", "ID", "Name", "Department", "Leave Type", "From", "To",
+                    "Prefix From", "Prefix To", "Suffix From", "Suffix To", "Date of Joining", "Total", "Document"]
+                let is_ML_MTL_LOP = false;
+                switch (leaveType.value) {
+                    case "ML":
+                    case "MTL":
+                    case "LOP":
+                        tableHead = [...tableHead.slice(0, 11), "Medical Fitness on", ...tableHead.slice(11)]
+                        is_ML_MTL_LOP = true;
+                        break;
+                    default:
+                        break;
+                }
+                document.getElementById("table-head-upload").innerHTML = `<tr>${tableHead.map((item) => `<th>${item}</th>`).join("")}</tr>`
                 let tbody = ""
                 jsonData.forEach((item, i) => {
                         tbody += `<tr data-lid="${item[0]}">
@@ -147,13 +162,23 @@ leaveType.addEventListener("change", () => {
                             <td>${leaveType.value}</td>
                             <td>${item[3]}</td>
                             <td>${item[4]}</td>
+                            <td>${item[5] === null ? "Nil" : item[5]}</td>
+                            <td>${item[6] === null ? "Nil" : item[6]}</td>
+                            <td>${item[7] === null ? "Nil" : item[7]}</td>
+                            <td>${item[8] === null ? "Nil" : item[8]}</td>
+                            <td>${item[9]}</td>
+                            <td>${item[10]}</td>
+                            ${is_ML_MTL_LOP ? `<td>${item[11]}</td>` : ""}
                             <td><button onclick="showModal(this)">Upload</button></td>
                             </tr>`
                     }
                 )
                 document.getElementById("leaveTable").getElementsByTagName("tbody")[0].innerHTML = tbody;
+                document.getElementById("leaveTable").style.display = "table";
+                document.querySelector(".no-data").style.display = "none";
             } else {
-                alert("No data exists");
+                document.getElementById("leaveTable").style.display = "none";
+                document.querySelector(".no-data").style.display = "flex";
             }
         })
     }
@@ -213,3 +238,36 @@ function addMoreFile() {
 function removeFile(id) {
     document.getElementById(id).remove();
 }
+
+
+// Handling Excel Upload for Staff, Get Sheet names
+async function getSheetNames(fileInput) {
+    let file = fileInput.files[0];
+    let formData = new FormData();
+    formData.append("file", file);
+    await fetch("/staff/get_sheet_names", {
+        method: "POST",
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            response.json().then((data) => {
+                console.log(data)
+                data = data['sheet_names'];
+                let select = document.getElementById("sheetName");
+                select.innerHTML = "";
+                data.forEach((item) => {
+                    select.innerHTML += `<option value="${item}">${item}</option>`
+                })
+            })
+        } else {
+            alert("Error uploading file");
+        }
+    })
+}
+
+leaveUploadID = document.getElementById('idElem')
+leaveUploadID.addEventListener('input', async () => {
+    if (leaveUploadID.value.length === 5) {
+        getStaffData(leaveUploadID.value)
+    }
+})
