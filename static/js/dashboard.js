@@ -82,7 +82,12 @@ function uploadExcel() {
         body: formData
     }).then(response => {
         if (response.ok) {
-            alert("File uploaded successfully");
+            response.json().then(data=>{
+                if(data["error"])
+                alert(data["error"])
+                else
+                alert("File uploaded successfully");
+            })
         } else {
             alert("Error uploading file");
         }

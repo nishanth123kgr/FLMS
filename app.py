@@ -106,16 +106,13 @@ def upload_file():
             el = get_el(uploaded_file, info["sheetName"])
             ml, mtl, lop = get_ml_mtl_lop(uploaded_file, info["sheetName"])
             # Update the EL table
-            print(ml)
-            print(mtl)
-            print(lop)
             for i in range(len(el)):
                 row = el[i]
-                print(row)
                 try:
                     total = get_total_days(row[0], row[1])
                     cursor.execute(
-                        'INSERT INTO el (id, dept, `from`, `to`, from_prefix, to_prefix, from_suffix, to_suffix, date_of_rejoin, total) VALUES ('
+                        'INSERT INTO el (id, dept, `from`, `to`, from_prefix, to_prefix, from_suffix, to_suffix, '
+                        'date_of_rejoin, total) VALUES ('
                         '%s, "%s", "%s", "%s", %s, %s, %s, %s, %s, %s)' %
                         (info["id"], info["department"], row[0], row[1],
                          row[2][0] if row[2][0] == 'NULL' else '"' + row[2][0] + '"',
@@ -126,13 +123,15 @@ def upload_file():
                     db.commit()
                     cursor.reset()
                 except Exception as e:
-                    print("Error:", e, "Row:", row)
+                    if "Duplicate entry" not in str(e):
+                        print(e)
+                        return {"error": "Error parsing data on row " + str(
+                            i + 12) + " of EL sheet.\nError Description: " + str(e)}
             # Update the ML, MTL, LOP table
             for name, table in [('ml', ml), ('mtl', mtl), ('lop', lop)]:
                 if table:
                     for i in range(len(table)):
                         row = table[i]
-                        print(row)
                         try:
                             total = get_total_days(row[0], row[1])
                             cursor.execute(
@@ -148,7 +147,10 @@ def upload_file():
                             db.commit()
                             cursor.reset()
                         except Exception as e:
-                            print(e)
+                            if "Duplicate entry" not in str(e):
+                                print(e)
+                                return {"error": "Error parsing data on row " + str(
+                                    i + 12) + " of EL sheet. Please check the data and try again. " + str(e)}
             return {"status": "success"}
         return {"status": "failed"}
 

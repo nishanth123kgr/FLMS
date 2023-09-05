@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+import re
 
 
 def convert_to_desired_format(date_str):
@@ -37,7 +38,10 @@ def separate_prefix_suffix(from_date, to_date, date_str):
         to_date = datetime.strptime(to_date, "%Y-%m-%d")
     except ValueError:
         return
-    dates = date_str.strip().split()
+    date_pattern = r'\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{2}|\d{2}-\d{2}-\d{4}|[0-9]{2}.[0-9]{2}.[0-9]{4}'
+
+    # Find all dates in the string
+    dates = re.findall(date_pattern, date_str)
     dates = [convert_to_desired_format(date) for date in dates]
     from_prefix, to_prefix, from_suffix, to_suffix = "", "", "", ""
 
@@ -48,6 +52,7 @@ def separate_prefix_suffix(from_date, to_date, date_str):
         else:
             dates.remove(date)
     if dates:
+        print(dates)
         dates.sort(key=lambda date: datetime.strptime(date, date_format))
         for date in dates:
             date = datetime.strptime(date, date_format)
@@ -98,4 +103,4 @@ def get_el(file, sheet_name):
 
 
 if __name__ == "__main__":
-    print(get_el("../02-Dr.Golden-FINAL24.08.2023.xlsx", "EL-n"))
+    print(get_el("../09-Dr.M. Navabarathi-23.08.2023.xlsx", "EL"))
