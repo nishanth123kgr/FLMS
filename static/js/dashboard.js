@@ -31,37 +31,27 @@ async function search(id) {
 }
 
 function getStaffData(id) {
-    let data = search(id);
-    data.then((jsonData) => {
-        if (jsonData[0]) {
-            let nameElement = document.getElementById("nameElem");
-            let deptElement = document.getElementById("depElem");
-            let dataItem = jsonData[0]
-            console.log(dataItem);
-            nameElement.value = dataItem[0];
-            deptElement.value = dataItem[1];
-        } else {
-            alert("No such staff exists");
-        }
-    })
+    return search(id);
 }
 
 idInput.addEventListener('input', async () => {
-        let data = search(idInput.value);
-        data.then((jsonData) => {
-            if (jsonData[0]) {
-                let dataItem = jsonData[0]
-                console.log(dataItem);
-                name.value = dataItem[0];
-                department.value = dataItem[1];
-                doj.value = new Date(dataItem[2]).toISOString().split('T')[0].split('-').reverse().join('-');
-            } else {
-                name.value = "";
-                department.value = "";
-                doj.value = "";
-                alert("No such staff exists");
-            }
-        })
+        if (idInput.value.length === 5) {
+            let data = search(idInput.value);
+            data.then((jsonData) => {
+                if (jsonData[0]) {
+                    let dataItem = jsonData[0]
+                    console.log(dataItem);
+                    name.value = dataItem[0];
+                    department.value = dataItem[1];
+                    doj.value = new Date(dataItem[2]).toISOString().split('T')[0].split('-').reverse().join('-');
+                } else {
+                    name.value = "";
+                    department.value = "";
+                    doj.value = "";
+                    alert("No such staff exists");
+                }
+            })
+        }
     }
 )
 
@@ -82,11 +72,11 @@ function uploadExcel() {
         body: formData
     }).then(response => {
         if (response.ok) {
-            response.json().then(data=>{
-                if(data["error"])
-                alert(data["error"])
+            response.json().then(data => {
+                if (data["error"])
+                    alert(data["error"])
                 else
-                alert("File uploaded successfully");
+                    alert("File uploaded successfully");
             })
         } else {
             alert("Error uploading file");
@@ -246,7 +236,7 @@ function removeFile(id) {
 
 
 // Handling Excel Upload for Staff, Get Sheet names
-async function getSheetNames(fileInput) {
+async function getSheetNames(fileInput, selectID) {
     let file = fileInput.files[0];
     let formData = new FormData();
     formData.append("file", file);
@@ -258,7 +248,7 @@ async function getSheetNames(fileInput) {
             response.json().then((data) => {
                 console.log(data)
                 data = data['sheet_names'];
-                let select = document.getElementById("sheetName");
+                let select = document.getElementById(selectID);
                 select.innerHTML = "";
                 data.forEach((item) => {
                     select.innerHTML += `<option value="${item}">${item}</option>`
@@ -273,6 +263,164 @@ async function getSheetNames(fileInput) {
 leaveUploadID = document.getElementById('idElem')
 leaveUploadID.addEventListener('input', async () => {
     if (leaveUploadID.value.length === 5) {
-        getStaffData(leaveUploadID.value)
+        let dataItem = getStaffData(leaveUploadID.value)
+        dataItem.then(result => {
+            if (result) {
+                let nameElement = document.getElementById("nameElem");
+                let deptElement = document.getElementById("depElem");
+                console.log(result);
+                nameElement.value = result[0][0];
+                deptElement.value = result[0][1];
+            } else {
+                console.log("No such staff exists");
+            }
+        })
+
     }
 })
+
+// VL Upload
+// Getting Data with ID
+let vlUploadID = document.getElementById('vl_id')
+vlUploadID.addEventListener('input', async () => {
+        if (vlUploadID.value.length === 5) {
+            let dataItem = getStaffData(vlUploadID.value)
+            dataItem.then(result => {
+                if (dataItem) {
+                    console.log(result);
+
+                    document.getElementById("vl_name").value = result[0][0];
+                    document.getElementById("vl_dept").value = result[0][1];
+                    document.getElementById("vl_doj").value = new Date(result[0][2]).toISOString().split('T')[0].split('-').reverse().join('-');
+
+                } else {
+                    console.log("No such staff exists");
+                }
+            })
+
+        }
+    }
+)
+
+// Upload VL
+function uploadVL() {
+    let file = document.getElementById("vl_file_input").files[0];
+    let formData = new FormData();
+    formData.append("file", file);
+
+    let vl_id = vlUploadID.value
+    let vl_sheet_name = document.getElementById("vl_sheet_name").value
+    console.log(`/upload_vl/${vl_id}/${vl_sheet_name}`)
+    console.log(formData)
+    fetch(`/upload_vl/${vl_id}/${vl_sheet_name}`, {
+        method: "POST",
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            response.json().then(data => {
+                if (data["error"])
+                    alert(data["error"])
+                else
+                    console.log(data["data"]);
+                renderVLTable(data["data"]);
+
+            })
+        } else {
+            alert("Error uploading file");
+        }
+    })
+}
+
+function getTotalDays(fromDate, toDate) {
+    if (fromDate === null || toDate === null || fromDate === "NULL" || toDate === "NULL") {
+        return 0;
+    }
+    const dateParts1 = fromDate.split('-');
+    const dateParts2 = toDate.split('-');
+
+// Create Date objects with the parsed parts
+    const date1 = new Date(`${dateParts1[2]}-${dateParts1[1]}-${dateParts1[0]}`);
+    const date2 = new Date(`${dateParts2[2]}-${dateParts2[1]}-${dateParts2[0]}`);
+
+// Calculate the time difference in milliseconds
+    const timeDifference = date2 - date1;
+
+// Calculate the number of days
+    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    return daysDifference + 1
+
+}
+
+// Render VL Table
+function renderVLTable(data) {
+    sessionStorage.setItem("vlData", JSON.stringify(data));
+    let vlTable = document.getElementById("vlTable");
+    vlTable.parentElement.style.display = "flex";
+    let vlHead = ["Si.No", "VL ID", "From", "To", "Total", "Availed From", "Availed To", "Total", "Prevented From", "Prevented To", "Total"]
+    vlTable.getElementsByTagName("thead")[0].innerHTML = `<tr>${vlHead.map((item) => `<th>${item}</th>`).join("")}</tr>`
+    let tbody = ""
+    let sino = 0;
+    let vl_staff_id = document.getElementById("vl_id").value
+    for (const item in data) {
+        let availed_from = ''
+        let availed_to = ''
+        let prevented_from = ''
+        let prevented_to = ''
+        let availed_total = ''
+        let prevented_total = ''
+        for (let i = 0; i < data[item]['Availed_from'].length; i++) {
+            availed_from += `<div>${data[item]['Availed_from'][i] === 'NULL'?'-':data[item]['Availed_from'][i]}</div>`
+            availed_to += `<div>${data[item]['Availed_to'][i] === 'NULL'?'-':data[item]['Availed_to'][i]}</div>`
+            availed_total += `<div>${getTotalDays(data[item]['Availed_from'][i], data[item]['Availed_to'][i])}</div>`
+        }
+        for (let i = 0; i < data[item]['Prevented'].length; i++) {
+            prevented_from += `<div>${data[item]['Prevented'][i][0]}</div>`
+            prevented_to += `<div>${data[item]['Prevented'][i][1]}</div>`
+            prevented_total += `<div>${getTotalDays(data[item]['Prevented'][i][0], data[item]['Prevented'][i][1])}</div>`
+        }
+        tbody += `<tr>
+        <td>${++sino}</td>
+        <td>${item}</td>
+        <td>${data[item]['from'][0] === null ? "-" : data[item]['from'][0]}</td>
+        <td>${data[item]['to'][0] === null ? "-" : data[item]['to'][0]}</td>
+        <td>${getTotalDays(data[item]['from'][0], data[item]['to'][0])}</td>
+        <td style="padding: 0">${availed_from}</td>
+        <td style="padding: 0">${availed_to}</td>
+        <td style="padding: 0">${availed_total}</td>
+        <td style="padding: 0">${prevented_from?prevented_from:'-'}</td>
+        <td style="padding: 0">${prevented_to?prevented_to:'-'}</td>
+        <td style="padding: 0">${prevented_total?prevented_total:'0'}</td>
+        </tr>`
+    }
+    vlTable.getElementsByTagName("tbody")[0].innerHTML = tbody;
+}
+
+// Update VL DB
+function updateVLDB() {
+    let data = sessionStorage.getItem("vlData");
+    let staff_id = document.getElementById("vl_id").value
+    if(!staff_id){
+        alert("Please enter staff ID")
+        return
+    }
+    if (data) {
+        fetch(`/update_vl/${staff_id}`, {
+            method: "POST",
+            body: data
+        }).then(response => {
+            if (response.ok) {
+                response.json().then(data => {
+                    if (data["error"])
+                        alert(data["error"])
+                    else
+                        alert("File uploaded successfully");
+                })
+            } else {
+                alert("Error uploading file");
+            }
+        })
+    } else {
+        alert("No data to update");
+    }
+}
+

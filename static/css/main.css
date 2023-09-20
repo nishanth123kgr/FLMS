@@ -51,8 +51,9 @@ body {
 /* Styling for the entire table */
 table.rounded-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
     border-radius: 5px;
+    border-spacing: 0;
 
 }
 
@@ -70,7 +71,7 @@ table.rounded-table tbody tr:nth-child(even) {
 /* Styling for table body cells */
 table.rounded-table td, table.rounded-table th {
     padding: 5px;
-    outline: 1px solid #ddd;
+    border: 1px solid #ddd;
     text-align: center;
 }
 
@@ -97,4 +98,15 @@ table.rounded-table td, table.rounded-table th {
 
 .rounded-table tr:last-child td:last-child {
     border-bottom-right-radius: 5px;
+}
+
+
+
+td div {
+    border-bottom: 1px solid #ddd;
+    padding: 5px;
+}
+
+td div:last-child {
+    border-bottom: none;
 }

@@ -15,6 +15,8 @@ from flask import Flask, render_template, request, redirect, flash, jsonify, ses
 
 from from_csv.el_from_csv import get_el
 from from_csv.ml_mtl_lop_from_csv import get_ml_mtl_lop
+from from_csv.utils import get_total_days, convert_to_date_text
+from from_csv.vl_from_csv import get_vl
 
 app = Flask(__name__)
 
@@ -49,13 +51,13 @@ def get_data(id, type):
 
 @app.route("/")
 def display_staff():
-    if session['role'] != 4:
-        return redirect("/login")
+    # if session['role'] != 4:
+    #     return redirect("/login")
     return redirect("/login")
-    cursor.execute("select * from staff")
-    result = cursor.fetchall()
-    cursor.reset()
-    return render_template("index.html", table_content=enumerate(result))
+    # cursor.execute("select * from staff")
+    # result = cursor.fetchall()
+    # cursor.reset()
+    # return render_template("index.html", table_content=enumerate(result))
 
 
 @app.route("/staff/<id>", methods=["POST"])
@@ -83,13 +85,6 @@ def display_dashboard():
             return redirect("/login")
     else:
         return redirect("/login")
-
-
-def get_total_days(from_date, to_date):
-    format = "%Y-%m-%d" if "-" in from_date else "%d.%m.%Y" if "." in from_date else "%d/%m/%Y"
-    from_date = datetime.datetime.strptime(from_date, format)
-    to_date = datetime.datetime.strptime(to_date, format)
-    return (to_date - from_date).days + 1
 
 
 @app.route("/staff/upload", methods=["GET", "POST"])
@@ -138,7 +133,7 @@ def upload_file():
                                 'INSERT INTO %s (id, dept, `from`, `to`, medical_fittness_on, from_prefix, to_prefix, from_suffix, to_suffix, '
                                 'doj,total) VALUES (%s, "%s", "%s", "%s",%s, %s, %s, %s, %s, "%s", %s)' %
                                 (name, info["id"], info["department"], row[0], row[1],
-                                 row[3] if row[3] == 'NULL' else '\'["' + row[3] + '"]\'',
+                                 row[3] if row[3] == 'NULL' else row[3],
                                  row[4][0] if row[4][0] == 'NULL' else '"' + row[4][0] + '"',
                                  row[4][1] if row[4][1] == 'NULL' else '"' + row[4][1] + '"',
                                  row[4][2] if row[4][2] == 'NULL' else '"' + row[4][2] + '"',
@@ -250,6 +245,55 @@ def upload_document(dept, id, type, l_id):
                 flash('Invalid file format', 'error')
         return {"status": "success"}
     return "This is upload Page"
+
+
+# Gets VL data, calculates vacation prevented dates and total no. of days availed
+@app.route('/upload_vl/<id>/<sheet>', methods=['GET', 'POST'])
+def upload_vl_details(id, sheet):
+    if session['role'] != 4:
+        return redirect("/login")
+    if request.method == "POST":
+        uploaded_file = request.files["file"]
+        if uploaded_file:
+            vl_data = get_vl(uploaded_file, sheet, cursor)
+            for key, value in vl_data.items():
+                vl_data[key] = {inner_key: convert_to_date_text(inner_value) for inner_key, inner_value in
+                                value.items()}
+            print(vl_data)
+            return {"data": vl_data, "status": "success"}
+        else:
+            return {"status": "failed"}
+    return "This is VL data page"
+
+
+@app.route('/update_vl/<staff_id>', methods=['GET', 'POST'])
+def update_vl(staff_id):
+    if request.method == "POST":
+        data = json.loads(request.data)
+        for key, value in data.items():
+            data[key] = {inner_key: convert_to_date_text(inner_value) for inner_key, inner_value in
+                         value.items()}
+        print(data)
+        print(staff_id)
+        try:
+            for i in data:
+                query = f'INSERT into vl (vac_id, staff_id, availed_from, availed_to, prevented) values ("%s", %s, %s, %s, %s)' % (
+                    i, staff_id, "NULL" if (data[i]["Availed_from"][0] is None or data[i]["Availed_from"][
+                        0] == "NULL") else '\"' + str(data[i]["Availed_from"]) + '\"',
+                    "NULL" if (data[i]["Availed_to"][0] is None or data[i]["Availed_to"][0] == "NULL") else '\"' + str(
+                        data[i]["Availed_to"]) + '\"',
+                    "NULL" if (data[i]["Prevented"] is None or data[i]["Prevented"] == "NULL") else '\"' + str(
+                        data[i]["Prevented"]) + '\"')
+                print(query)
+                cursor.execute(
+                    query)
+
+                db.commit()
+        except Exception as e:
+            print(e)
+            return {"status": "failed", 'error': str(e)}
+        return {"status": "success"}
+    return "This is VL data page"
 
 
 # Sharon Work Starts
