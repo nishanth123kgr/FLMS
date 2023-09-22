@@ -6,17 +6,22 @@ import os
 import random
 import smtplib
 import string
+import uuid
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import mysql.connector
 import pandas as pd
-from flask import Flask, render_template, request, redirect, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, flash, jsonify, session, send_file
 
 from from_csv.el_from_csv import get_el
 from from_csv.ml_mtl_lop_from_csv import get_ml_mtl_lop
 from from_csv.utils import get_total_days, convert_to_date_text
 from from_csv.vl_from_csv import get_vl
+
+import xlsxwriter
+
+from report_generation import generate_report
 
 app = Flask(__name__)
 
@@ -509,6 +514,22 @@ def auth_success():
 
 
 # Ended Sharon Work
+
+
+# Maheshwar work starts here
+
+
+@app.route('/generate_report/<staff_id>', methods=['POST', 'GET'])
+def report_generation(staff_id):
+    if request.method == 'GET':
+        xlname = generate_report(cursor, staff_id)
+        try:
+            return send_file("static/reports/" + xlname + '.xlsx', as_attachment=True)
+        except Exception as e:
+            print("Error:", str(e))
+            return {"status": "failed", 'error': str(e)}
+
+    return render_template('report_generation.html')
 
 
 if __name__ == "__main__":

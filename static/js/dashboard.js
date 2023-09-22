@@ -360,7 +360,6 @@ function renderVLTable(data) {
     vlTable.getElementsByTagName("thead")[0].innerHTML = `<tr>${vlHead.map((item) => `<th>${item}</th>`).join("")}</tr>`
     let tbody = ""
     let sino = 0;
-    let vl_staff_id = document.getElementById("vl_id").value
     for (const item in data) {
         let availed_from = ''
         let availed_to = ''
@@ -424,3 +423,45 @@ function updateVLDB() {
     }
 }
 
+// Report Generation
+function generateReport() {
+    let staff_id = document.getElementById("reportInput").value
+    if(!staff_id){
+        alert("Please enter staff ID")
+        return
+    }
+    fetch(`/generate_report/${staff_id}`, {
+  method: "GET"
+})
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.blob(); // Get the file data as a blob
+  })
+  .then(blob => {
+    // Create a URL for the blob data
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Create a temporary anchor element
+    const link = document.createElement('a');
+    link.style.display = 'none';
+    document.body.appendChild(link);
+
+    // Set the href attribute of the anchor element to the blob URL
+    link.href = blobUrl;
+
+    // Specify the filename for the downloaded file (optional)
+    link.download = `${staff_id}_el.xlsx`;
+
+    // Trigger a click event on the anchor element to initiate the download
+    link.click();
+
+    // Clean up by revoking the blob URL and removing the anchor element
+    window.URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(link);
+  })
+  .catch(error => {
+    console.error('Error downloading the file:', error);
+  });
+}
