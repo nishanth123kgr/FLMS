@@ -437,8 +437,8 @@ remarksCheck.addEventListener('change', () => {
 });
 
 
-function generateReport() {
-    let remarks = encodeURIComponent('-')
+function generateReport(needPDF=0) {
+    let remarks = encodeURIComponent('null')
     let staff_id = document.getElementById("reportInput").value
     if (!staff_id) {
         alert("Please enter staff ID")
@@ -452,7 +452,7 @@ function generateReport() {
             return
         }
     }
-    fetch(`/generate_report/${staff_id}/${attendanceCheck.checked ? 1 : 0}/${remarks}`, {
+    fetch(`/generate_report/${staff_id}/${attendanceCheck.checked ? 1 : 0}/${remarks}/${needPDF}`, {
         method: "GET"
     })
         .then(response => {
@@ -474,7 +474,7 @@ function generateReport() {
             link.href = blobUrl;
 
             // Specify the filename for the downloaded file (optional)
-            link.download = `${staff_id}_el.xlsx`;
+            link.download = `${staff_id}_el.${needPDF ? 'pdf' : 'xlsx'}`;
 
             // Trigger a click event on the anchor element to initiate the download
             link.click();

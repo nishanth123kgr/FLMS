@@ -517,14 +517,15 @@ def auth_success():
 # Maheshwar work starts here
 
 
-@app.route('/generate_report/<staff_id>/<need_attendance>/<remarks>', methods=['POST', 'GET'])
-def report_generation(staff_id, need_attendance, remarks):
+@app.route('/generate_report/<staff_id>/<need_attendance>/<remarks>/<need_pdf>', methods=['POST', 'GET'])
+def report_generation(staff_id, need_attendance, remarks, need_pdf):
     if request.method == 'GET':
         remarks = urllib.parse.unquote(remarks)
-        remarks = remarks if remarks != '-' else ''
-        xlname = generate_report(cursor, staff_id, True if need_attendance == '1' else False, remarks)
+        remarks = remarks if remarks != 'null' else ''
+        file = generate_report(cursor, staff_id, True if need_attendance == '1' else False, remarks,
+                               True if need_pdf == '1' else False)
         try:
-            return send_file("static/reports/" + xlname + '.xlsx', as_attachment=True)
+            return send_file("static/reports/" + file['name'] + '.' + file['type'], as_attachment=True)
         except Exception as e:
             print("Error:", str(e))
             return {"status": "failed", 'error': str(e)}

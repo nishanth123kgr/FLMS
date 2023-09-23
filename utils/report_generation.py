@@ -6,7 +6,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import mysql.connector
-
+import xlsx2pdf.transformators
 
 def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf=False):
     def with_permission_fun(from_prefix, to_prefix, from_suffix, to_suffix):
@@ -223,7 +223,10 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                     byte_data_str = byte_data.decode('utf-8')
                     str_data = json.loads(byte_data_str)
                     formatted_date = '-' if str_data[0] == '-' else datetime.datetime.strptime(str_data[0], "%Y-%m-%d")
-                    worksheet.write(start_row, column_index, formatted_date.strftime('%d-%m-%Y') if isinstance(formatted_date, datetime.date) else formatted_date, cell_format_left)
+                    worksheet.write(start_row, column_index,
+                                    formatted_date.strftime('%d-%m-%Y') if isinstance(formatted_date,
+                                                                                      datetime.date) else formatted_date,
+                                    cell_format_left)
                     column_index += 1
 
                 elif isinstance(value, list):
@@ -245,31 +248,21 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
     if need_remarks:
         worksheet.merge_range(*(start_row, 0, start_row, 12), need_remarks, cell_format_center)
     workbook.close()
+    if need_pdf:
+        # Convert the Excel file to PDF
+        excel_file = "static/reports/" + xlname + '.xlsx'
+        pdf_file = "static/reports/" + xlname + '.pdf'
 
-    # Create a BytesIO buffer to store the PDF
-    # pdf_buffer = BytesIO()
-    #
-    # # Create a PDF document
-    # c = canvas.Canvas(pdf_buffer, pagesize=letter)
-    #
-    # # Set the title for the PDF
-    # c.setTitle('Excel to PDF Example')
-    #
-    # # Convert the Excel file to PDF
-    # excel_file = "static/reports/" + xlname + '.xlsx'
-    # pdf_file = "static/reports/" + xlname + '.pdf'
-    #
-    # # Save the PDF to the buffer
-    # c.save()
-    #
-    # # Write the PDF buffer to a file
-    # with open(pdf_file, 'wb') as f:
-    #     f.write(pdf_buffer.getvalue())
-    #
-    # # Close the PDF buffer
-    # pdf_buffer.close()
 
-    return xlname
+
+        # Replace 'input.xlsx' with the path to your Excel file and 'output.pdf' with the desired PDF file name.
+        convert("input.xlsx", "output.pdf")
+
+
+
+        return {"name": xlname, "type": "pdf"}
+    else:
+        return {"name": xlname, "type": "xlsx"}
 
 
 if __name__ == "__main__":
