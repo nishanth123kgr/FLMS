@@ -8,7 +8,7 @@ from io import BytesIO
 import mysql.connector
 
 
-def generate_report(cursor, id, need_remark=True):
+def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf=False):
     def with_permission_fun(from_prefix, to_prefix, from_suffix, to_suffix):
         prefix = []
         if from_prefix and to_prefix:
@@ -149,7 +149,7 @@ def generate_report(cursor, id, need_remark=True):
     worksheet.merge_range(*merge_ranges[12], 'Medical Leave  (ML)  /  Maternity Leave  (MTL) / Loss of pay (LOP)',
                           cell_format_left)
     worksheet.write('L9', 'Type of Leave', cell_format_left)
-    if need_remark:
+    if need_attendance:
         worksheet.write('M10', 'Attendance Register', cell_format_left)
 
     head_list = [['From', 'To', 'with permission on', 'Date of Joining on Duty after EL', 'Total No. of Days',
@@ -180,7 +180,7 @@ def generate_report(cursor, id, need_remark=True):
                     worksheet.write(start_row, column_index, value.strftime('%d-%m-%Y'), cell_format_left)
                     column_index += 1
                 elif isinstance(value, str) and value.startswith("AURCT"):
-                    if need_remark:
+                    if need_attendance:
                         worksheet.write(start_row, 12, value, cell_format_left)
                 elif isinstance(value, list):
 
@@ -215,7 +215,7 @@ def generate_report(cursor, id, need_remark=True):
                     column_index += 1
 
                 elif isinstance(value, str) and value.startswith("AURCT"):
-                    if need_remark:
+                    if need_attendance:
                         worksheet.write(start_row, 12, value, cell_format_left)
 
                 elif isinstance(value, bytes):
@@ -242,7 +242,8 @@ def generate_report(cursor, id, need_remark=True):
 
             start_row += 1
     print(start_row)
-    worksheet.merge_range(*(start_row, 0, start_row, 12), 'sample last row', cell_format_center)
+    if need_remarks:
+        worksheet.merge_range(*(start_row, 0, start_row, 12), need_remarks, cell_format_center)
     workbook.close()
 
     # Create a BytesIO buffer to store the PDF

@@ -6,6 +6,7 @@ import os
 import random
 import smtplib
 import string
+import urllib.parse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -516,10 +517,12 @@ def auth_success():
 # Maheshwar work starts here
 
 
-@app.route('/generate_report/<staff_id>', methods=['POST', 'GET'])
-def report_generation(staff_id):
+@app.route('/generate_report/<staff_id>/<need_attendance>/<remarks>', methods=['POST', 'GET'])
+def report_generation(staff_id, need_attendance, remarks):
     if request.method == 'GET':
-        xlname = generate_report(cursor, staff_id)
+        remarks = urllib.parse.unquote(remarks)
+        remarks = remarks if remarks != '-' else ''
+        xlname = generate_report(cursor, staff_id, True if need_attendance == '1' else False, remarks)
         try:
             return send_file("static/reports/" + xlname + '.xlsx', as_attachment=True)
         except Exception as e:

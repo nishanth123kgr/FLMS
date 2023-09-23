@@ -15,18 +15,6 @@ function toggleActive(element) {
     element.className += " active";
 }
 
-
-const remarksCheck = document.getElementById("remarks-checkbox")
-remarksCheck.addEventListener('change', () => {
-    let remarks = document.querySelector(".remarks-section")
-    if (remarksCheck.checked) {
-        remarks.style.display = 'block'
-    } else {
-        remarks.style.display = 'none'
-    }
-});
-
-
 let idInput = document.getElementById("id");
 let name = document.getElementById("name");
 let department = document.getElementById("dept");
@@ -436,13 +424,35 @@ function updateVLDB() {
 }
 
 // Report Generation
+
+const remarksCheck = document.getElementById("remarks-checkbox")
+remarksCheck.addEventListener('change', () => {
+    let remarks = document.querySelector(".remarks-section")
+    if (remarksCheck.checked) {
+        remarks.style.display = 'block'
+    } else {
+        remarks.style.display = 'none'
+        document.getElementById("remarks").value = ""
+    }
+});
+
+
 function generateReport() {
+    let remarks = encodeURIComponent('-')
     let staff_id = document.getElementById("reportInput").value
     if (!staff_id) {
         alert("Please enter staff ID")
         return
     }
-    fetch(`/generate_report/${staff_id}`, {
+    let attendanceCheck = document.getElementById("attendance-checkbox")
+    if (remarksCheck.checked) {
+        remarks = encodeURIComponent(document.getElementById("remarks").value)
+        if (!remarks) {
+            alert("Please enter remarks")
+            return
+        }
+    }
+    fetch(`/generate_report/${staff_id}/${attendanceCheck.checked ? 1 : 0}/${remarks}`, {
         method: "GET"
     })
         .then(response => {
