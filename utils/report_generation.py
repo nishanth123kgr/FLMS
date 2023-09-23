@@ -2,9 +2,13 @@ import json
 import uuid
 import datetime
 import xlsxwriter
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import mysql.connector
 
 
-def generate_report(cursor, id):
+def generate_report(cursor, id, need_remark=True):
     def with_permission_fun(from_prefix, to_prefix, from_suffix, to_suffix):
         prefix = []
         if from_prefix and to_prefix:
@@ -32,35 +36,53 @@ def generate_report(cursor, id):
 
         return on_permission
 
+    def attendence_register(dep, year):
+        query = "SELECT register_name FROM `attendance_register` WHERE department = %s AND year = %s;"
+        cursor.execute(query, (dep, year))
+        data = cursor.fetchall()
+
+        return data
+
     def getdata(type, id):
         if type == 'el':
             cursor.reset()
             query = "SELECT `from`, `to`, `from_prefix`, `to_prefix`, `from_suffix`, `to_suffix`, `date_of_rejoin`, `total` FROM " + type + " WHERE id=" + id + "; "
             cursor.execute(query)
-            data = cursor.fetchall()
-            data_final = [sublist + (type,) for sublist in data]
+            data_final = cursor.fetchall()
+
             on_permission = []
             for i in data_final:
                 on_permission.append(with_permission_fun(i[2], i[3], i[4], i[5]))
+            remark = []
+            for i in data_final:
+                print(data[0][2], i[0].year)
+                remark.append(attendence_register(data[0][2], i[0].year))
+            remark = [item[0] for sublist in remark for item in sublist]
+
             data_final_updated = []
             for i, sublist in enumerate(data_final):
-                columns_to_keep = sublist[:2] + (on_permission[i],) + sublist[6:]
+                columns_to_keep = sublist[:2] + (on_permission[i],) + sublist[6:] + (remark[i],)
                 data_final_updated.append(columns_to_keep)
+            data_final_updated = [sublist + (type,) for sublist in data_final_updated]
             return data_final_updated
         else:
             cursor.reset()
             query = "SELECT `from`,`to`,`total`, `medical_fittness_on`, `from_prefix`, `to_prefix`, `from_suffix`, `to_suffix`, `doj` FROM " + type + " WHERE id=" + id + ";; "
             cursor.execute(query)
-            data5 = cursor.fetchall()
-            data_final = [sublist + (type,) for sublist in data5]
+            data_final = cursor.fetchall()
             on_permission = []
             for i in data_final:
                 on_permission.append(with_permission_fun(i[4], i[5], i[6], i[7]))
-
+            remark = []
+            for i in data_final:
+                print(data[0][2], i[0].year)
+                remark.append(attendence_register(data[0][2], i[0].year))
+            remark = [item[0] for sublist in remark for item in sublist]
             data_final_updated = []
             for i, sublist in enumerate(data_final):
-                columns_to_keep = sublist[:4] + (on_permission[i],) + sublist[8:]
+                columns_to_keep = sublist[:4] + (on_permission[i],) + sublist[8:] + (remark[i],)
                 data_final_updated.append(columns_to_keep)
+            data_final_updated = [sublist + (type,) for sublist in data_final_updated]
             return data_final_updated
 
     def generate_random_name():
@@ -72,10 +94,10 @@ def generate_report(cursor, id):
     query = "SELECT * FROM `staff` WHERE id=" + id + ";"
     cursor.execute(query)
     data = cursor.fetchall()
-    data_el = getdata('el', '22015')
-    data_ml = getdata('ml', '22015')
-    data_lop = getdata('lop', '22015')
-    data_mtl = getdata('mtl', '22015')
+    data_el = getdata('el', id)
+    data_ml = getdata('ml', id)
+    data_lop = getdata('lop', id)
+    data_mtl = getdata('mtl', id)
     sorted_data = sorted(data_lop + data_el + data_ml + data_mtl, key=lambda x: x[0])
     xlname = generate_random_name()
     workbook = xlsxwriter.Workbook("static/reports/" + xlname + '.xlsx')
@@ -101,12 +123,12 @@ def generate_report(cursor, id):
     cell_format_center = workbook.add_format({
         'align': 'center',  # Center alignment
         'text_wrap': True,  # Wrap text
-
+        'valign': 'vcenter',  # Center vertically
     })
     cell_format_left = workbook.add_format({
         'align': 'center',  # Center alignment
         'text_wrap': True,  # Wrap text
-
+        'valign': 'vcenter',  # Center vertically
     })
 
     # Perform the defined merges
@@ -127,7 +149,8 @@ def generate_report(cursor, id):
     worksheet.merge_range(*merge_ranges[12], 'Medical Leave  (ML)  /  Maternity Leave  (MTL) / Loss of pay (LOP)',
                           cell_format_left)
     worksheet.write('L9', 'Type of Leave', cell_format_left)
-    worksheet.write('M10', 'Remarks', cell_format_left)
+    if need_remark:
+        worksheet.write('M10', 'Attendance Register', cell_format_left)
 
     head_list = [['From', 'To', 'with permission on', 'Date of Joining on Duty after EL', 'Total No. of Days',
                   'From', 'To', 'Total No. of Days', 'Medical Fitness on', 'with permission on',
@@ -152,16 +175,18 @@ def generate_report(cursor, id):
             column_index = 0
             for value in sublist:
                 if value == 'el':
-                    worksheet.write(start_row, 11, value, cell_format_left)
+                    worksheet.write(start_row, 11, value.upper(), cell_format_left)
                 elif isinstance(value, datetime.date):
-
                     worksheet.write(start_row, column_index, value.strftime('%d-%m-%Y'), cell_format_left)
                     column_index += 1
+                elif isinstance(value, str) and value.startswith("AURCT"):
+                    if need_remark:
+                        worksheet.write(start_row, 12, value, cell_format_left)
                 elif isinstance(value, list):
+
                     if value:
                         worksheet.write(start_row, column_index, value[0], cell_format_left)
                     else:
-
                         worksheet.write(start_row, column_index, "Nil", cell_format_left)
 
                     column_index += 1
@@ -184,17 +209,21 @@ def generate_report(cursor, id):
             for value in sublist:
                 if value == 'lop' or value == 'mtl' or value == 'ml':
                     print(value)
-                    worksheet.write(start_row, 11, value, cell_format_left)
+                    worksheet.write(start_row, 11, value.upper(), cell_format_left)
                 elif isinstance(value, datetime.date):
                     worksheet.write(start_row, column_index, value.strftime('%d-%m-%Y'), cell_format_left)
                     column_index += 1
+
+                elif isinstance(value, str) and value.startswith("AURCT"):
+                    if need_remark:
+                        worksheet.write(start_row, 12, value, cell_format_left)
 
                 elif isinstance(value, bytes):
                     byte_data = value
                     byte_data_str = byte_data.decode('utf-8')
                     str_data = json.loads(byte_data_str)
-                    formatted_date = datetime.datetime.strptime(str_data[0], "%Y-%m-%d")
-                    worksheet.write(start_row, column_index, formatted_date.strftime('%d-%m-%Y'), cell_format_left)
+                    formatted_date = '-' if str_data[0] == '-' else datetime.datetime.strptime(str_data[0], "%Y-%m-%d")
+                    worksheet.write(start_row, column_index, formatted_date.strftime('%d-%m-%Y') if isinstance(formatted_date, datetime.date) else formatted_date, cell_format_left)
                     column_index += 1
 
                 elif isinstance(value, list):
@@ -212,6 +241,39 @@ def generate_report(cursor, id):
                 worksheet.write(start_row, i, "-", cell_format_center)
 
             start_row += 1
-
+    print(start_row)
+    worksheet.merge_range(*(start_row, 0, start_row, 12), 'sample last row', cell_format_center)
     workbook.close()
+
+    # Create a BytesIO buffer to store the PDF
+    # pdf_buffer = BytesIO()
+    #
+    # # Create a PDF document
+    # c = canvas.Canvas(pdf_buffer, pagesize=letter)
+    #
+    # # Set the title for the PDF
+    # c.setTitle('Excel to PDF Example')
+    #
+    # # Convert the Excel file to PDF
+    # excel_file = "static/reports/" + xlname + '.xlsx'
+    # pdf_file = "static/reports/" + xlname + '.pdf'
+    #
+    # # Save the PDF to the buffer
+    # c.save()
+    #
+    # # Write the PDF buffer to a file
+    # with open(pdf_file, 'wb') as f:
+    #     f.write(pdf_buffer.getvalue())
+    #
+    # # Close the PDF buffer
+    # pdf_buffer.close()
+
     return xlname
+
+
+if __name__ == "__main__":
+    mydb = mysql.connector.connect(host="localhost", port="3306", user="root",
+                                   database="facultyleavedb")
+
+    cursor = mydb.cursor()
+    generate_report(cursor, '22019')

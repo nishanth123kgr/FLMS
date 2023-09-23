@@ -10,10 +10,22 @@ function changeContent(element) {
 }
 
 function toggleActive(element) {
-    var active = document.getElementsByClassName("active");
+    const active = document.getElementsByClassName("active");
     active[0].className = active[0].className.replace(" active", "");
     element.className += " active";
 }
+
+
+const remarksCheck = document.getElementById("remarks-checkbox")
+remarksCheck.addEventListener('change', () => {
+    let remarks = document.querySelector(".remarks-section")
+    if (remarksCheck.checked) {
+        remarks.style.display = 'block'
+    } else {
+        remarks.style.display = 'none'
+    }
+});
+
 
 let idInput = document.getElementById("id");
 let name = document.getElementById("name");
@@ -368,8 +380,8 @@ function renderVLTable(data) {
         let availed_total = ''
         let prevented_total = ''
         for (let i = 0; i < data[item]['Availed_from'].length; i++) {
-            availed_from += `<div>${data[item]['Availed_from'][i] === 'NULL'?'-':data[item]['Availed_from'][i]}</div>`
-            availed_to += `<div>${data[item]['Availed_to'][i] === 'NULL'?'-':data[item]['Availed_to'][i]}</div>`
+            availed_from += `<div>${data[item]['Availed_from'][i] === 'NULL' ? '-' : data[item]['Availed_from'][i]}</div>`
+            availed_to += `<div>${data[item]['Availed_to'][i] === 'NULL' ? '-' : data[item]['Availed_to'][i]}</div>`
             availed_total += `<div>${getTotalDays(data[item]['Availed_from'][i], data[item]['Availed_to'][i])}</div>`
         }
         for (let i = 0; i < data[item]['Prevented'].length; i++) {
@@ -386,9 +398,9 @@ function renderVLTable(data) {
         <td style="padding: 0">${availed_from}</td>
         <td style="padding: 0">${availed_to}</td>
         <td style="padding: 0">${availed_total}</td>
-        <td style="padding: 0">${prevented_from?prevented_from:'-'}</td>
-        <td style="padding: 0">${prevented_to?prevented_to:'-'}</td>
-        <td style="padding: 0">${prevented_total?prevented_total:'0'}</td>
+        <td style="padding: 0">${prevented_from ? prevented_from : '-'}</td>
+        <td style="padding: 0">${prevented_to ? prevented_to : '-'}</td>
+        <td style="padding: 0">${prevented_total ? prevented_total : '0'}</td>
         </tr>`
     }
     vlTable.getElementsByTagName("tbody")[0].innerHTML = tbody;
@@ -398,7 +410,7 @@ function renderVLTable(data) {
 function updateVLDB() {
     let data = sessionStorage.getItem("vlData");
     let staff_id = document.getElementById("vl_id").value
-    if(!staff_id){
+    if (!staff_id) {
         alert("Please enter staff ID")
         return
     }
@@ -426,42 +438,42 @@ function updateVLDB() {
 // Report Generation
 function generateReport() {
     let staff_id = document.getElementById("reportInput").value
-    if(!staff_id){
+    if (!staff_id) {
         alert("Please enter staff ID")
         return
     }
     fetch(`/generate_report/${staff_id}`, {
-  method: "GET"
-})
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.blob(); // Get the file data as a blob
-  })
-  .then(blob => {
-    // Create a URL for the blob data
-    const blobUrl = window.URL.createObjectURL(blob);
+        method: "GET"
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.blob(); // Get the file data as a blob
+        })
+        .then(blob => {
+            // Create a URL for the blob data
+            const blobUrl = window.URL.createObjectURL(blob);
 
-    // Create a temporary anchor element
-    const link = document.createElement('a');
-    link.style.display = 'none';
-    document.body.appendChild(link);
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.style.display = 'none';
+            document.body.appendChild(link);
 
-    // Set the href attribute of the anchor element to the blob URL
-    link.href = blobUrl;
+            // Set the href attribute of the anchor element to the blob URL
+            link.href = blobUrl;
 
-    // Specify the filename for the downloaded file (optional)
-    link.download = `${staff_id}_el.xlsx`;
+            // Specify the filename for the downloaded file (optional)
+            link.download = `${staff_id}_el.xlsx`;
 
-    // Trigger a click event on the anchor element to initiate the download
-    link.click();
+            // Trigger a click event on the anchor element to initiate the download
+            link.click();
 
-    // Clean up by revoking the blob URL and removing the anchor element
-    window.URL.revokeObjectURL(blobUrl);
-    document.body.removeChild(link);
-  })
-  .catch(error => {
-    console.error('Error downloading the file:', error);
-  });
+            // Clean up by revoking the blob URL and removing the anchor element
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(link);
+        })
+        .catch(error => {
+            console.error('Error downloading the file:', error);
+        });
 }

@@ -6,7 +6,6 @@ import os
 import random
 import smtplib
 import string
-import uuid
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -19,9 +18,7 @@ from from_csv.ml_mtl_lop_from_csv import get_ml_mtl_lop
 from from_csv.utils import get_total_days, convert_to_date_text
 from from_csv.vl_from_csv import get_vl
 
-import xlsxwriter
-
-from report_generation import generate_report
+from utils.report_generation import generate_report
 
 app = Flask(__name__)
 

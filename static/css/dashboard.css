@@ -131,7 +131,7 @@ button {
     background-color: var(--primary_dark);
 }
 
-input:focus, select:focus {
+input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus, select:focus {
     outline: 3px solid var(--primary_dark);
 }
 
@@ -190,4 +190,9 @@ input:focus, select:focus {
     margin: 0;
     font-size: 18px;
     color: #888;
+}
+
+.remarks-section{
+    display: none;
+    transition: .3s all linear;
 }
