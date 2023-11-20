@@ -6,7 +6,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import mysql.connector
-import xlsx2pdf.transformators
+# import xlsx2pdf.transformators
 
 def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf=False):
     def with_permission_fun(from_prefix, to_prefix, from_suffix, to_suffix):
@@ -55,7 +55,6 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                 on_permission.append(with_permission_fun(i[2], i[3], i[4], i[5]))
             remark = []
             for i in data_final:
-                print(data[0][2], i[0].year)
                 remark.append(attendence_register(data[0][2], i[0].year))
             remark = [item[0] for sublist in remark for item in sublist]
 
@@ -75,7 +74,6 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                 on_permission.append(with_permission_fun(i[4], i[5], i[6], i[7]))
             remark = []
             for i in data_final:
-                print(data[0][2], i[0].year)
                 remark.append(attendence_register(data[0][2], i[0].year))
             remark = [item[0] for sublist in remark for item in sublist]
             data_final_updated = []
@@ -208,7 +206,6 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
             column_index = 5
             for value in sublist:
                 if value == 'lop' or value == 'mtl' or value == 'ml':
-                    print(value)
                     worksheet.write(start_row, 11, value.upper(), cell_format_left)
                 elif isinstance(value, datetime.date):
                     worksheet.write(start_row, column_index, value.strftime('%d-%m-%Y'), cell_format_left)
@@ -222,6 +219,7 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                     byte_data = value
                     byte_data_str = byte_data.decode('utf-8')
                     str_data = json.loads(byte_data_str)
+                    print(str_data)
                     formatted_date = '-' if str_data[0] == '-' else datetime.datetime.strptime(str_data[0], "%Y-%m-%d")
                     worksheet.write(start_row, column_index,
                                     formatted_date.strftime('%d-%m-%Y') if isinstance(formatted_date,
@@ -244,22 +242,10 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                 worksheet.write(start_row, i, "-", cell_format_center)
 
             start_row += 1
-    print(start_row)
     if need_remarks:
         worksheet.merge_range(*(start_row, 0, start_row, 12), need_remarks, cell_format_center)
     workbook.close()
     if need_pdf:
-        # Convert the Excel file to PDF
-        excel_file = "static/reports/" + xlname + '.xlsx'
-        pdf_file = "static/reports/" + xlname + '.pdf'
-
-
-
-        # Replace 'input.xlsx' with the path to your Excel file and 'output.pdf' with the desired PDF file name.
-        convert("input.xlsx", "output.pdf")
-
-
-
         return {"name": xlname, "type": "pdf"}
     else:
         return {"name": xlname, "type": "xlsx"}

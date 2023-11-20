@@ -51,7 +51,6 @@ def generate_gen_vac_details(vl_data, cursor):
         axis=1)
     gen_data = gen_data[['id', 'Year', 'Summer / Winter', 'From', 'To', 'total_days']]
     data = gen_data.values.tolist()
-    print(data)
     for i in data:
         try:
             cursor.execute(
@@ -59,9 +58,7 @@ def generate_gen_vac_details(vl_data, cursor):
                 "VALUES (%s, %s, %s, %s, %s, %s)",
                 (i[0], i[1], i[2], i[3], i[4], i[5]))
             cursor.reset()
-            print("Inserted")
         except Exception as e:
-            print(e)
             mydb.rollback()
     mydb.commit()
 
@@ -182,4 +179,3 @@ if __name__ == "__main__":
                                    database="facultyleavedb")
 
     db_cursor = mydb.cursor()
-    print(get_vl("../Arulfranco.xlsx", "VL", db_cursor))

@@ -1,0 +1,270 @@
+{% extends 'base.html' %} {% block head %}
+<title>Faculty Dashboard</title>
+<link
+  href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.1/tailwind.min.css"
+  rel="stylesheet"
+/>
+<link
+  href="https://site-assets.fontawesome.com/releases/v6.4.0/css/all.css"
+  rel="stylesheet"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/main.css') }}"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/dashboard.css') }}"
+/>
+
+{# Style for Upload Excel #} {% endblock %} {% block content %}
+<div
+  id="staff_data"
+  data-id="{{ id }}"
+  data-name="{{ name }}"
+  data-dept="{{ dept }}"
+></div>
+<div class="m-0 p-0 flex flex-col h-screen overflow-hidden">
+  <div class="top-bar shadow flex justify-between p-3 bg-white relative z-10">
+    <div class="Welcome">
+      <img
+        src="https://auttvl.ac.in/wp-content/uploads/2021/07/logo.png"
+        alt=""
+      />
+      <!-- <h2 class="font-bold text-xl text-white">Welcome back, Alumni!</h2>
+                <span class="text-gray-500" id="date"></span> -->
+    </div>
+    <div class="profile-sec flex">
+      <div class="flex flex-col justify-center items-end h-12 pr-3">
+        <span class="font-bold text-lg">Welcome {{ name }}!</span>
+        <!-- <span class="text-gray-500">950020000000</span> -->
+      </div>
+      <div class="w-12 h-12 rounded-2xl profile-pic"></div>
+    </div>
+  </div>
+  <div class="flex h-full">
+    <div
+      class="sidebar flex flex-col items-center overflow-hidden text-white pl-2 w-96"
+    >
+      <a class="flex items-center justify-center h-12 px-3 mt-7">
+        <div class="h-6 text-xl text-center font-bold">My Dashboard</div>
+      </a>
+      <div class="items flex h-full flex-col w-full mt-2 justify-between">
+        <div class="flex flex-col items-center w-full mt-3">
+          {% set sidebarItems = [["Apply Leave", "file", 'active'], ['Leave
+          Details', 'upload', ''], ['EL Earned', 'clipboard-list-check',
+          ''], ['Generate Report', 'file-export', '']] %} {% for i in
+          sidebarItems %}
+          <a
+            class="flex items-center justify-start w-full h-12 px-3 mt-2 rounded {{ i[2] }}"
+            onclick="changeContent(this)"
+          >
+            <div class="flex ml-6 items-center justify-start">
+              <i class="far fa-{{ i[1] }} fs-md ml-1"></i>
+              <span class="block ml-3 text-sm font-medium">{{ i[0] }}</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="main-container w-full flex flex-col">
+      <div class="main w-full overflow-y-scroll overflow-x-hidden">
+        <div class="section-container">
+          <!-- Content Goes Here -->
+          {# Apply Leave Starts #}
+          <div class="apply-leave container un-hide" id="apply-leave">
+            <h3 class="font-bold mb-5 text-xl">Apply Leave</h3>
+            <div class="w-full announcement-card">
+              <iframe src="/leave_form" frameborder="0" width="100%" height="100vh"></iframe>
+            </div>
+          </div>
+          {# Apply Leave Ends #}
+          {# EL Earned Starts #}
+          <div class="el-earned container hide" id="el-earned">
+            <h3 class="font-bold mb-5 text-xl">EL Earned</h3>
+            <div class="w-full announcement-card">
+              <span class="text-center">Before Probation</span>
+              <table class="rounded-table my-3" id="el_earned_before_table">
+                <thead>
+                  <tr id="table-head-el-b"></tr>
+                </thead>
+                <tbody>
+                  {# Table Content Goes Here #}
+                </tbody>
+              </table>
+              <div
+                class="flex justify-center items-center no-data mt-5"
+                style="display: none"
+              >
+                <div class="no-data-container">
+                  <p>No data to display</p>
+                </div>
+              </div>
+              <!-- After Probation -->
+              <span class="text-center">After Probation</span>
+              <table class="rounded-table my-3" id="el_earned_after_table">
+                <thead>
+                  <tr id="table-head-el-a"></tr>
+                </thead>
+                <tbody>
+                  {# Table Content Goes Here #}
+                </tbody>
+              </table>
+              <div
+                class="flex justify-center items-center no-data mt-5"
+                style="display: none"
+              >
+                <div class="no-data-container">
+                  <p>No data to display</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {# EL Earned Ends #}
+          {# Leave Details Starts #}
+          <div class="leave-details container hide" id="leave-details">
+            <h3 class="font-bold mb-5 text-xl">Leave Details</h3>
+            <div class="w-full announcement-card">
+              <div id="leave_filters" class="flex">
+                <div id="leave_type_container" class="mr-3">
+                  <label
+                    for="leave_type"
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    >Select Leave Type</label
+                  >
+                  <select
+                    id="leave_type"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-max"
+                  >
+                    <option value="" selected>Choose Type</option>
+                    <option value="el">EL</option>
+                    <option value="ml">ML</option>
+                    <option value="mtl">MTL</option>
+                    <option value="lop">LOP</option>
+                  </select>
+                </div>
+                <div
+                  date-rangepicker
+                  datepicker-format="dd-mm-yyyy"
+                  class="items-center"
+                >
+                  <label
+                    for="leave_type"
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    >Select Date Range Type</label
+                  >
+                  <div class="flex items-center">
+                    <div class="relative">
+                      <div
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                      >
+                        <svg
+                          class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        name="start"
+                        type="text"
+                        id="leave_date_start_filter"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Select date start"
+                      />
+                    </div>
+                    <span class="mx-4 text-gray-500">to</span>
+                    <div class="relative mr-3">
+                      <div
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                      >
+                        <svg
+                          class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <input
+                        name="end"
+                        type="text"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Select date end"
+                        id="leave_date_end_filter"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onclick="applyDateFilter()"
+                      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center mr-2"
+                    >
+                      <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <table class="rounded-table my-3" id="leaveTable">
+                <thead>
+                  <tr id="table-head-upload"></tr>
+                </thead>
+                <tbody>
+                  {# Table Content Goes Here #}
+                </tbody>
+              </table>
+              <div
+                class="flex justify-center items-center no-data mt-5"
+                style="display: none"
+              >
+                <div class="no-data-container">
+                  <p>No data to display</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {# Leave Details Ends #} {# Modal Container Starts #}
+          <div
+            id="myModal"
+            class="modal hide"
+            style="display: none; z-index: 111;"
+          >
+            <div class="modal-content p-5" style="width: 60%; height: 600px;">
+              <span class="close">×</span>
+              <div class="content">
+                <h3 class="font-bold text-lg text-center">Upload</h3>
+                <div class="file-gallery p-5">
+                  <div class="file-container flex">
+                    <div class="file flex flex-col items-center" style="width: 100px; word-wrap:break-word;">
+                      <img src="../static/images/pdf.png" alt="" width="100px" height="100px">
+                      <span>File name</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {# Modal Container Ends #}
+        </div>
+        {# Upload Excel Ends #}
+        <div class="w-full text-sm text-white cpy-right pl-9 bg-black">
+          © 2023 Anna University Regional Campus Tirunelveli. All rights
+          reserved.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/dashboard_utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/staff_dashboard.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/datepicker.min.js"></script>
+{% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block head %}
-    <title>Faculty Dashboard</title>
+    <title>Admin Dashboard</title>
     <link
             href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.1/tailwind.min.css"
             rel="stylesheet"
@@ -237,7 +237,7 @@
                         {# Attendance Register Upload Ends #}
 
                         {# Generate Report Starts #}
-                        <div class="generate-report container un-hide" id="generate-report"><h3
+                        <div class="generate-report container hide" id="generate-report"><h3
                                 class="font-bold mb-5 text-xl">Generate Report</h3>
                             <div class="w-full announcement-card">
                                 <label for="reportInput" class="block text-gray-700 font-semibold mb-2">Enter Staff
@@ -392,5 +392,6 @@
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard_utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
 {% endblock %}

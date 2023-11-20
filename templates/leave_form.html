@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>TimeTable</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <form>
+        <div class="container-sm" style="padding: 35px;margin: 24px;">
+            <h2>Leave Form:</h2><hr>
+
+            <div id="namediv" style="display: none;">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Name:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;display:none;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><input class="form-control" type="text" id="name" style="height: 40px;width: 50%;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;" name="name"></div>
+                </div>
+            </div>
+            <div id="desdiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Designation:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col"><input class="form-control" type="text" id="designation" style="height: 40px;width: 50%;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></div>
+                </div>
+            </div>
+            <div id="leavetypediv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Type of leave:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><select class="form-select" id="leave_type" style="width: 50%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;">
+                            <option value="Earned Leave (EL)">Earned Leave (EL) </option>
+                            <option value="Medical Leave (ML)">Medical Leave (ML)</option>
+                            <option value="Casual Leave (CL)">Casual Leave (CL)</option>
+                            <option value="Exam OD">Exam OD</option>
+                            <option value="Inspection OD">Inspection OD</option>
+                            <option value="Restricted Holiday (RH)">Restricted Holiday (RH)</option>
+                            <option value="Special Casual Leave (SPCL)">Special Casual Leave (SPCL)</option>
+                            <option value="" selected="">select</option>
+                        </select></div>
+                </div>
+            </div>
+            <div id="depdiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Department:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><input class="form-control" type="text" id="department" style="height: 40px;width: 50%;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></div>
+                </div>
+            </div>
+            <div id="reasondiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Reason for Leave:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><textarea class="form-control" id="reasonforleave" style="width: 50%;height: 100px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></textarea></div>
+                </div>
+            </div>
+            <div id="datediv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 50%;height: 40px;">Required Date:</span></div>
+                </div>
+                <div id="reqdiv">
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 75%;height: 40px;">From :</span></div>
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 75%;height: 40px;">To:</span></div>
+                    </div>
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><input class="form-control" id="reqfrom" type="date" style="width: 75%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;" name="reqfrom"></div>
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><input class="form-control" id="reqto" type="date" style="width: 75%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;" name="reqto"></div>
+                        <div class="col-md-3"><button class="btn btn-primary" type="button" onclick="setChanges()">Set</button></div>
+                    </div>
+                </div>
+                <div id="prediv">
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 50%;height: 40px;">Prefix:</span></div>
+                    </div>
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 75%;height: 40px;">From :</span></div>
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 75%;height: 40px;">To:</span></div>
+                    </div>
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><input class="form-control" id="prefrom" type="date" style="width: 75%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></div>
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><input class="form-control" id="preto" type="date" style="width: 75%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></div>
+                    </div>
+                </div>
+                <div id="sufdiv">
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 50%;height: 40px;">Sufffix:</span></div>
+                    </div>
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 75%;height: 40px;">From :</span></div>
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><span style="font-weight: bold;width: 75%;height: 40px;">To:</span></div>
+                    </div>
+                    <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><input class="form-control" id="suffrom" type="date" style="width: 75%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></div>
+                        <div class="col" style="padding-right: 12px;padding-left: 12px;width: 50%;"><input class="form-control" id="sufto" type="date" style="width: 75%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="leaveadddiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Leave Address:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><textarea class="form-control" id="leaveadd" style="width: 50%;height: 100px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></textarea></div>
+                </div>
+            </div>
+            <div id="goouttowndiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Permission to go out of town:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><select class="form-select" id="ingoouttown" style="width: 50%;height: 40px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;">
+                            <option value="No" selected="">No</option>
+                            <option value="Yes">Yes</option>
+                            <option value=""></option>
+                        </select></div>
+                </div>
+            </div>
+            <div id="outoftowndiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Out of town Address:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><textarea class="form-control" id="inoutoftown" style="width: 50%;height: 100px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></textarea></div>
+                </div>
+            </div>
+            <div id="notesdiv">
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Notes:</span></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px;margin-top: 10px;">
+                    <div class="col" style="padding-right: 12px;padding-left: 12px;"><textarea class="form-control" id="notes" style="width: 50%;height: 100px;background: #ffffff80;border-width: 2px;border-style: solid;border-radius: 3px;"></textarea></div>
+                </div>
+            </div>
+            <div id="chageperdiv">
+                <div class="col" style="padding-right: 12px;padding-left: 12px;"><span style="font-weight: bold;width: 50%;height: 40px;">Period Change:</span></div>
+                <div class="table-responsive" style="border-style: none;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid var(--bs-table-color) ;">Date</th>
+                                <th style="border: 1px solid var(--bs-table-color) ;">Day</th>
+                                <th style="border: 1px solid var(--bs-table-color) ;">Period</th>
+                                <th style="border: 1px solid var(--bs-table-color) ;">Subject&nbsp;</th>
+                                <th style="border: 1px solid var(--bs-table-color) ;">Changed Staff</th>
+                                <th style="border: 1px solid var(--bs-table-color) ;">Changed Subject</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clasbod">
+                            <tr hidden="">
+                                <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="text" value="" style="width: 125px;" readonly=""></td>
+                                <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="text" value="" style="width: 75px;" readonly=""></td>
+                                <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="text" value="" style="width: 60px;" readonly=""></td>
+                                <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="text" value="" readonly=""></td>
+                                <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="text" style="width: 150px;"></td>
+                                <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="text" style="width: 150px;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end"><button class="btn btn-primary border rounded-pill" type="button" style="margin: 24px;width: 100px;" onclick="generate();">Apply</button><button class="btn btn-primary" type="button" style="background: rgba(13,110,253,0);border-style: none;color: var(--bs-emphasis-color);">Cancel</button></div>
+        </div>
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/leave_form.js') }}"></script>
+</body>
+
+</html>

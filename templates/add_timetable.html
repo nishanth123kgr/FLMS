@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>TimeTable</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body style="padding: 28px;">
+    <div class="container">
+        <h1>Add Timetable:</h1><hr>
+        <form id="timetableForm" method="post" action="http://127.0.0.1:5000/api/add_timetable">
+            <div style="width: 60%;">
+                <div class="input-group" style="margin-top: 20px;margin-bottom: 20px;"><span class="input-group-text" style="width: 180px;">Department :&nbsp;</span><select class="form-select" style="width: 60%;" name="dep" required="">
+                        <option value="CSE" selected="">CSE</option>
+                        <option value="GEO">GEO</option>
+                        <option value="ECE">ECE</option>
+                        <option value="MECH">MECH</option>
+                    </select></div>
+                <div class="input-group" style="margin-top: 20px;margin-bottom: 20px;"><span class="input-group-text" style="width: 180px;">Semester :&nbsp;</span><select class="form-select" style="width: 60%;" name="sem" required="">
+                        <option value="1" selected="">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select></div>
+                <div class="input-group" style="margin-top: 20px;margin-bottom: 20px;"><span class="input-group-text" style="width: 180px;">Academic Year :&nbsp;</span><input class="form-control" type="text" style="width: 60%;" placeholder="Enter Academic Year" inputmode="numeric" autocomplete="off" name="acayear" maxlength="4" minlength="4" required="" pattern="[0-9]{4}"></div>
+                <div class="input-group" style="margin-top: 20px;margin-bottom: 20px;"><span class="input-group-text" style="width: 180px;">Academic Semester :&nbsp;</span><select class="form-select" style="width: 60%;" name="acasem" required="">
+                        <option value="odd" selected="">ODD</option>
+                        <option value="even">EVEN</option>
+                    </select></div>
+                <div class="input-group" style="margin-top: 20px;margin-bottom: 20px;"><span class="input-group-text" style="width: 180px;">Naan Mudhalvan Day :&nbsp;</span><select class="form-select" id="naan" style="width: 60%;" name="naan">
+                        <option value="MON">Monday</option>
+                        <option value="TUE">Tuesday</option>
+                        <option value="WED">Wednesday</option>
+                        <option value="THU">Thursday</option>
+                        <option value="FRI">Friday</option>
+                        <option value="No" selected="">No</option>
+                    </select></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">Day/Periods</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">1</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">2</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">3</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">4</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">5</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">6</th>
+                            <th style="border: 1px solid var(--bs-emphasis-color);text-align: center;">7</th>
+                            <th class="text-center" style="border: 1px solid var(--bs-emphasis-color) ;">8</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-emphasis-color);text-align: center;">Monday</td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_1" list="subjects" validation="[A-Z][1-9]{6}" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_2" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_3" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_4" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_5" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_6" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_7" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="mon_8" list="subjects" minlength="6" maxlength="6"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-emphasis-color);text-align: center;">Tuesday</td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_1" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_2" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_3" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_4" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_5" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_6" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;" list="subjects" validation="[A-Z][1-9]{6}"><input class="form-control" type="text" required="" name="tue_7" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="tue_8" list="subjects" minlength="6" maxlength="6"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-emphasis-color);text-align: center;">Wednesday</td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;" rowspan="wed_1"><input class="form-control" type="text" required="" name="wed_1" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="wed_2" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;" rowspan="wed_3"><input class="form-control" type="text" required="" name="wed_3" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="wed_4" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="wed_5" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="wed_6" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="wed_7" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="wed_8" list="subjects" minlength="6" maxlength="6"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-emphasis-color);text-align: center;">Thursday</td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_1" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_2" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_3" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_4" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_5" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_6" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_7" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="thu_8" list="subjects" minlength="6" maxlength="6"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-emphasis-color);text-align: center;">Friday</td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_1" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_2" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_3" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_4" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_5" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_6" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_7" list="subjects" minlength="6" maxlength="6"></td>
+                            <td style="border: 1px solid var(--bs-table-striped-color) ;"><input class="form-control" type="text" required="" name="fri_8" list="subjects" minlength="6" maxlength="6"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-center"><button class="btn btn-primary" type="submit">Submit</button></div>
+        </form>
+    </div><datalist id="subjects">
+</datalist>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/add_timetable.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>TimeTable</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body style="padding: 28px;">
+    <div class="container">
+        <h1>Update Timetable Timing:</h1><hr>
+        <form method="post" action="http://127.0.0.1:5000/api/update_timetable_timing">
+            <div class="table-responsive" style="width: 50%;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid var(--bs-table-color) ;">Period</th>
+                            <th style="border: 1px solid var(--bs-table-color) ;">Start Time</th>
+                            <th style="border: 1px solid var(--bs-table-color) ;">End Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">1</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_1"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_1"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">2</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_2"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_2"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">3</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_3"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_3"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">4</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_4"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_4"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">5</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_5"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_5"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">6</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_6"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_6"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">7</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_7"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_7"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--bs-table-color) ;">8</td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="start_8"></td>
+                            <td style="border: 1px solid var(--bs-table-color) ;"><input class="form-control" type="time" name="end_8"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div><button class="btn btn-primary" type="submit" style="margin-left: 40%;">Submit</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/leave_form.js"></script>
+</body>
+
+</html>

@@ -52,7 +52,6 @@ def separate_prefix_suffix(from_date, to_date, date_str):
         else:
             dates.remove(date)
     if dates:
-        print(dates)
         dates.sort(key=lambda date: datetime.strptime(date, date_format))
         for date in dates:
             date = datetime.strptime(date, date_format)
@@ -91,7 +90,8 @@ def get_el(file, sheet_name):
         row = list(map(str.strip, row))
         if not set(row).issubset({"NULL", "-"}):
             if row[0] != "NULL" and row[1] != "NULL" and row[0] != "-" and row[1] != "-":
-                row[-1] = str(row[-1]).removesuffix("*") if row[-1] != "NULL" else row[-1]
+                # row[-1] = str(row[-1]).removesuffix("*") if row[-1] != "NULL" else row[-1]
+                row[-1] = str(row[-1])[:-1] if row[-1] != "NULL" else row[-1]
                 row[0] = remove_extra(row[0])
                 row[1] = remove_extra(row[1])
                 row[3] = remove_extra(row[3])
