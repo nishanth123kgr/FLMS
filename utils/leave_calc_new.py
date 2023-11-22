@@ -11,17 +11,20 @@ import os
 name = ''
 doj = ''
 dept = ''
+leaved = ''
 
 
 def set_staff_data(cursor, id):
-    query = "select doj, name, department from staff where id=%s" % (id)
+    query = "select doj, name, department, leaved_date from staff where id=%s" % (id)
     cursor.execute(query)
     data = cursor.fetchall()
     cursor.reset()
-    global name, doj, dept
+    global name, doj, dept, leaved
     name = data[0][1]
     doj = data[0][0]
     dept = data[0][2]
+    leaved = data[0][3]
+    print(leaved)
 
 
 def leave_availed(cursor, id, type, from_date, to_date):
@@ -85,7 +88,9 @@ def g(df, leaves, i):
     return result
 
 
-def calc_vl_prevented_total(to_date, staff_id, cursor):
+def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
+
+    print(1, to_date, dt, leaved, )
     year = to_date
     vl_id = f'{str(year - 1)[2:]}-{str(year)[2:]}'
     total_vl = 0
@@ -100,32 +105,48 @@ def calc_vl_prevented_total(to_date, staff_id, cursor):
             prevented = ast.literal_eval(prevented[0][0].decode('utf-8')) if not isinstance(prevented[0][0],
                                                                                             str) else eval(
                 prevented[0][0])
+            print(prevented)
             for i in prevented:
                 # print(i)
                 if i[0] and i[1]:
                     from_date = datetime.datetime.strptime(i[0], '%Y-%m-%d')
                     to_date = datetime.datetime.strptime(i[1], '%Y-%m-%d')
                     total_vl += (to_date - from_date).days + 1
+    print(round(total_vl / 3) if total_vl <= 60 else 20)
     return round(total_vl / 3) if total_vl <= 60 else 20
 
 
 def calculate_leave(id, cursor):
     set_staff_data(cursor, id)
     date_of_join = pd.to_datetime(doj)
+    print(date_of_join)
+    from_end = f"{datetime.datetime.now().year - 1}-07-01"
+    to_end = f"{datetime.datetime.now().year}-06-30"
+    if leaved:
+        from_end = f'{leaved.year-1 if leaved.month < 7 else leaved.year}-07-01'
+        to_end = leaved
+    print(from_end, to_end)
     from_date_range = pd.date_range(
         start=date_of_join,
-        end=f"{datetime.datetime.now().year - 1}-07-01",
+        end=from_end,
         freq="AS-JUL",
     ).tolist()
     from_date_range.insert(0, date_of_join)
     date_range = pd.date_range(
         start=f"{date_of_join.year}-06-30",
-        end=f"{datetime.datetime.now().year}-06-30",
+        end=to_end,
         freq="A-JUN",
     )
 
+    print(date_range)
     # Filter the date range based on date_of_join
     to_date_range = date_range[date_range > date_of_join]
+
+    if leaved:
+        to_date_range = to_date_range.tolist()
+        to_date_range.append(leaved)
+    print(from_date_range)
+    print(to_date_range)
     df = pd.DataFrame({"from": from_date_range, "to": to_date_range})
     result = []
     for i in range(len(df)):
@@ -155,14 +176,21 @@ def calculate_leave(id, cursor):
         lambda x: int(round(x))
     )
     calc["*/11-*/18"] = calc["*/11"] - calc["*/18"]
-    calc["vl_prevented"] = calc["to"].apply(
-        lambda x: calc_vl_prevented_total(x.year, id, cursor) if x == datetime.datetime(x.year, 6, 30) else '-')
-    final = pd.DataFrame()
-    final['year'] = calc['from'].dt.year
-    final["year"] = final["year"].apply(lambda x: f'{x}-{x + 1}')
-    final.drop_duplicates(subset=['year'], inplace=True)
-    final.reset_index(drop=True, inplace=True)
-    final["vl_prevented"] = final["year"].apply(lambda x: calc_vl_prevented_total(int(x[-4:]), id, cursor))
+    # print(calc['to'].iloc[-1].strftime("%d-%m-%Y"),calc['to'].iloc[-1].strftime("%d-%m-%Y")== leaved.strftime("%d-%m-%Y"))
+    if leaved:
+        calc["vl_prevented"] = calc["to"].apply(
+            lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6, 30) or x.strftime("%d-%m-%Y") == (leaved.strftime("%d-%m-%Y") if leaved else False) else '-')
+    else:
+        calc["vl_prevented"] = calc["to"].apply(
+            lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6,
+                                                                                               30)  else '-')
+
+    # final = pd.DataFrame()
+    # final['year'] = calc['from'].dt.year
+    # final["year"] = final["year"].apply(lambda x: f'{x}-{x + 1}')
+    # final.drop_duplicates(subset=['year'], inplace=True)
+    # final.reset_index(drop=True, inplace=True)
+    # final["vl_prevented"] = final["year"].apply(lambda x: calc_vl_prevented_total(int(x[-4:]), id, cursor, x))
     total = 0
     total_list = []
     for i in range(len(calc)):
@@ -276,7 +304,7 @@ def generate_excel(data, total, id):
         row = ['Add Vacation', f"{current_year}-{current_year + 1}", '',
                data.at[current_row - (1 if current_row != len(data) - 1 else 0), 'vl_prevented'], '', '', '']
         # if not current_year == 2022:
-        worksheet.write_row(current_row + vac_added_count + details_rows + (1 if current_row == len(data)-1  else 1), 0, row,
+        worksheet.write_row(current_row + vac_added_count + details_rows + (2 if current_row == len(data)-1  else 1), 0, row,
                                 bold_format)
         vac_year_added.append(f"{current_year}-{current_year + 1}")
         # if current_row != len(data)-1:
@@ -284,8 +312,8 @@ def generate_excel(data, total, id):
         vac_added_count += 1
         print(current_year, current_row, len(data))
 
-        # if current_row == len(data) - 1:
-        #     break
+        if current_row == len(data) - 1:
+            break
 
     for i in range(len(total)):
         worksheet.write(i + 1 + details_rows, 7, total[i], bold_format)
@@ -297,7 +325,7 @@ if __name__ == "__main__":
         host="localhost", port="3306", user="root", database="facultyleavedb"
     )
     cursor = db.cursor()
-    id = "25030"
+    id = "27002"
     data, total = calculate_leave(id, cursor)
     data.to_csv('data.csv', index=False)
     print(data)
