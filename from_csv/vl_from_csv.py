@@ -26,6 +26,7 @@ def convert_to_usable_format(df):
 def get_vl_data(file, sheet_name):
     df = pd.read_excel(file, sheet_name=sheet_name)
     df = df.iloc[10:, :7]
+    print(df)
     df = df.reset_index(drop=True)
     df = convert_to_usable_format(df)
     df['Summer / Winter'] = df['Summer / Winter'].apply(lambda x: x.lower())
@@ -145,6 +146,7 @@ def generate_prevention_details(data):
 
 
 def group_to_dict(group):
+    print(group)
     group_dict = {
         'from': group['from'].tolist(),
         'to': group['to'].tolist(),
@@ -170,6 +172,7 @@ def get_vl(file, sheet, cursor):
     gen_data = cursor.fetchall()
     gen_data = pd.DataFrame(gen_data, columns=['id', 'from', 'to'])
     gen_data = pd.merge(gen_data, vl_data, on='id', how='inner')
+
     grouped = gen_data.groupby('id').apply(group_to_dict).to_dict()
     return generate_prevention_details(grouped).to_dict()
 
