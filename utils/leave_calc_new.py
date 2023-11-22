@@ -276,7 +276,7 @@ def generate_excel(data, total, id):
         row = ['Add Vacation', f"{current_year}-{current_year + 1}", '',
                data.at[current_row - (1 if current_row != len(data) - 1 else 0), 'vl_prevented'], '', '', '']
         # if not current_year == 2022:
-        worksheet.write_row(current_row + vac_added_count + details_rows + (2 if current_row == len(data)-1  else 1), 0, row,
+        worksheet.write_row(current_row + vac_added_count + details_rows + (1 if current_row == len(data)-1  else 1), 0, row,
                                 bold_format)
         vac_year_added.append(f"{current_year}-{current_year + 1}")
         # if current_row != len(data)-1:
@@ -284,8 +284,8 @@ def generate_excel(data, total, id):
         vac_added_count += 1
         print(current_year, current_row, len(data))
 
-        if current_row == len(data) - 1:
-            break
+        # if current_row == len(data) - 1:
+        #     break
 
     for i in range(len(total)):
         worksheet.write(i + 1 + details_rows, 7, total[i], bold_format)
@@ -297,7 +297,7 @@ if __name__ == "__main__":
         host="localhost", port="3306", user="root", database="facultyleavedb"
     )
     cursor = db.cursor()
-    id = "25005"
+    id = "25030"
     data, total = calculate_leave(id, cursor)
     data.to_csv('data.csv', index=False)
     print(data)
