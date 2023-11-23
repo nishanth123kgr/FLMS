@@ -7,7 +7,6 @@ import math
 import xlsxwriter
 import os
 
-
 name = ''
 doj = ''
 dept = ''
@@ -89,7 +88,6 @@ def g(df, leaves, i):
 
 
 def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
-
     print(1, to_date, dt, leaved, )
     year = to_date
     vl_id = f'{str(year - 1)[2:]}-{str(year)[2:]}'
@@ -123,7 +121,7 @@ def calculate_leave(id, cursor):
     from_end = f"{datetime.datetime.now().year - 1}-07-01"
     to_end = f"{datetime.datetime.now().year}-06-30"
     if leaved:
-        from_end = f'{leaved.year-1 if leaved.month < 7 else leaved.year}-07-01'
+        from_end = f'{leaved.year - 1 if leaved.month < 7 else leaved.year}-07-01'
         to_end = leaved
     print(from_end, to_end)
     from_date_range = pd.date_range(
@@ -179,11 +177,13 @@ def calculate_leave(id, cursor):
     # print(calc['to'].iloc[-1].strftime("%d-%m-%Y"),calc['to'].iloc[-1].strftime("%d-%m-%Y")== leaved.strftime("%d-%m-%Y"))
     if leaved:
         calc["vl_prevented"] = calc["to"].apply(
-            lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6, 30) or x.strftime("%d-%m-%Y") == (leaved.strftime("%d-%m-%Y") if leaved else False) else '-')
+            lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6,
+                                                                                               30) or x.strftime(
+                "%d-%m-%Y") == (leaved.strftime("%d-%m-%Y") if leaved else False) else '-')
     else:
         calc["vl_prevented"] = calc["to"].apply(
             lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6,
-                                                                                               30)  else '-')
+                                                                                               30) else '-')
 
     # final = pd.DataFrame()
     # final['year'] = calc['from'].dt.year
@@ -213,110 +213,290 @@ def calculate_leave(id, cursor):
     return calc, total_list
 
 
-def generate_excel(data, total, id):
+# def generate_excel(data, total, id):
+#     if not os.path.exists(dept):
+#         os.makedirs(dept)
+#     # print(len(total))
+#     workbook = xlsxwriter.Workbook(f'{dept}/{id}-{name.strip().replace(" ", "")}.xlsx')
+#     worksheet = workbook.add_worksheet()
+#     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+#                                        'border_color': 'black'})
+#     bold_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+#                                        'border_color': 'black'})
+#     leave_format = workbook.add_format(
+#         {'bold': True, 'bg_color': '#FFFF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+#          'border_color': 'black'})
+#     details_rows = 3
+#     worksheet.write(0, 0, "Name", cell_format)
+#     worksheet.write(0, 1, name, cell_format)
+#     worksheet.write(1, 0, "Date of Joining", cell_format)
+#     worksheet.write(1, 1, doj.strftime("%d-%m-%Y"), cell_format)
+#     worksheet.write(2, 0, "Campus", cell_format)
+#     worksheet.write(2, 1, "Anna University Regional Campus - Tirunelveli", cell_format)
+#     headers = ["Type of Leave", '', '', '', '*/11', '*/18', '*/11-*/18', 'Total']
+#
+#     worksheet.write_row(details_rows, 0, headers, bold_format)
+#     cell_format.set_bold(False)
+#     worksheet.set_default_row(20)
+#     worksheet.set_column(0, 0, 15)
+#     worksheet.set_column(0, 1, 15)
+#     worksheet.set_column(0, 2, 15)
+#     # Assuming 'data' is your DataFrame and 'worksheet' is your Excel worksheet
+#
+#     current_row = 0
+#     vac_added_count = 0
+#     current_year = doj.year
+#     vac_year_added = []
+#     while current_row < len(data):
+#         # print(f"Current 'to' date: {data['to'].iloc[current_row]}")
+#         try:
+#             if data['from'].iloc[current_row].strftime("%m-%d") == "07-01":
+#                 current_year = data['from'].iloc[current_row].year
+#                 if data.at[current_row, 'type'] != 0:
+#                     row = [data.at[current_row, 'type'].upper(), data.at[current_row, 'from'].strftime("%d-%m-%Y"),
+#                            data.at[current_row, 'to'].strftime("%d-%m-%Y"), data.at[current_row, 'days_between'], '',
+#                            '', data.at[current_row, 'days_between']]
+#                     worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, leave_format)
+#                     current_row += 1
+#                 else:
+#                     row = [data.at[current_row, 'from'].strftime("%d-%m-%Y"),
+#                            data.at[current_row, 'to'].strftime("%d-%m-%Y"), '', data.at[current_row, 'days_between'],
+#                            data.at[current_row, '*/11'], data.at[current_row, '*/18'],
+#                            data.at[current_row, '*/11-*/18']]
+#
+#                     worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, cell_format)
+#
+#                     current_row += 1
+#
+#             while current_row < len(data) and data['from'].iloc[current_row].strftime("%m-%d") != "07-01":
+#                 # print(f"Current 'from' date: {data['from'].iloc[current_row].strftime('%m-%d')}")
+#
+#                 if data.at[current_row, 'type'] == 0:
+#                     # print("Type 0")
+#                     # Writing specific data to the worksheet for type 0
+#                     row = [data.at[current_row, 'from'].strftime("%d-%m-%Y"),
+#                            data.at[current_row, 'to'].strftime("%d-%m-%Y"), '', data.at[current_row, 'days_between'],
+#                            data.at[current_row, '*/11'], data.at[current_row, '*/18'],
+#                            data.at[current_row, '*/11-*/18']]
+#                     worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, cell_format)
+#                     current_row += 1
+#                 else:
+#                     # print("Other Type")
+#                     # Writing different data to the worksheet for other types
+#                     row = [data.at[current_row, 'type'].upper(), data.at[current_row, 'from'].strftime("%d-%m-%Y"),
+#                            data.at[current_row, 'to'].strftime("%d-%m-%Y"), data.at[current_row, 'days_between'], '',
+#                            '', data.at[current_row, 'days_between']]
+#                     worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, leave_format)
+#                     current_row += 1
+#
+#                 if current_row == len(data):
+#                     # print("Reached end of data")
+#                     current_row -= 1
+#                     break
+#         except IndexError as e:
+#             print(current_row)
+#             print(e.with_traceback())
+#
+#         if current_row < len(data) and data.at[current_row, 'to'].year == 2023:
+#             print(row)
+#             print(data.iloc[current_row])
+#             # Adding 'Add Vacation' row after inner loop completes
+#         row = ['Add Vacation', f"{current_year}-{current_year + 1}", '',
+#                data.at[current_row - (1 if current_row != len(data) - 1 else 0), 'vl_prevented'], '', '', '']
+#         # if not current_year == 2022:
+#         worksheet.write_row(current_row + vac_added_count + details_rows + (2 if current_row == len(data)-1  else 1), 0, row,
+#                                 bold_format)
+#         vac_year_added.append(f"{current_year}-{current_year + 1}")
+#
+#         # if below commented set current row to 2 else 1
+#
+#         # if current_row != len(data)-1:
+#         #     current_row += 1
+#
+#         vac_added_count += 1
+#         print(current_year, current_row, len(data))
+#
+#         if current_row == len(data) - 1:
+#             break
+#
+#     for i in range(len(total)):
+#         worksheet.write(i + 1 + details_rows, 7, total[i], bold_format)
+#     workbook.close()
+
+# def generate_excel(data, total, id):
+#     if not os.path.exists(dept):
+#         os.makedirs(dept)
+#
+#     filename = f'{dept}/{id}-{name.strip().replace(" ", "")}.xlsx'
+#     workbook = xlsxwriter.Workbook(filename)
+#     worksheet = workbook.add_worksheet()
+#
+#     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1, 'border_color': 'black'})
+#     bold_format = workbook.add_format(
+#         {'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1, 'border_color': 'black'})
+#     leave_format = workbook.add_format(
+#         {'bold': True, 'bg_color': '#FFFF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,
+#          'border_color': 'black'})
+#
+#     details_rows = 3
+#
+#     # Write metadata information
+#     worksheet.write(0, 0, "Name", cell_format)
+#     worksheet.write(0, 1, name, cell_format)
+#     worksheet.write(1, 0, "Date of Joining", cell_format)
+#     worksheet.write(1, 1, doj.strftime("%d-%m-%Y"), cell_format)
+#     worksheet.write(2, 0, "Campus", cell_format)
+#     worksheet.write(2, 1, "Anna University Regional Campus - Tirunelveli", cell_format)
+#
+#     headers = ["Type of Leave", '', '', '', '*/11', '*/18', '*/11-*/18', 'Total']
+#     worksheet.write_row(details_rows, 0, headers, bold_format)
+#
+#     for i, row in enumerate(data.iterrows(), start=details_rows + 1):
+#         index, values = row
+#         row_values = values.tolist()
+#         print(row_values)
+#         for i in range(len(row_values)):
+#             if isinstance(row_values[i], pd.Timestamp):
+#                 row_values[i] = row_values[i].strftime("%d-%m-%Y")
+#         if row_values[0].strftime("%m-%d") == "07-01":
+#             if row_values[2] != 0:
+#                 worksheet.write_row(i, 0, row_values[:4], leave_format)
+#             else:
+#                 worksheet.write_row(i, 0, row_values[:7], cell_format)
+#         else:
+#             if row_values[2] == 0:
+#                 worksheet.write_row(i, 0, row_values[:7], cell_format)
+#             else:
+#                 worksheet.write_row(i, 0, row_values[:4], leave_format)
+#
+#         if index < len(data) - 1 and values['to'].year == 2023:
+#             vl_prevented = data.iloc[index]['vl_prevented']
+#             worksheet.write_row(i + 1, 0,
+#                                 ['Add Vacation', f"{values['from'].year}-{values['to'].year}", '', vl_prevented, '', '',
+#                                  ''], bold_format)
+#
+#     for i, t in enumerate(total, start=details_rows + 1):
+#         worksheet.write(i, 7, t, bold_format)
+#
+#     workbook.close()
+
+def generate_excel(data):
     if not os.path.exists(dept):
         os.makedirs(dept)
-    # print(len(total))
+
+    file_name = f'{dept}/LeaveRecords.xlsx'
+
+    workbook = xlsxwriter.Workbook(file_name)
+    worksheet = workbook.add_worksheet()
+
+    cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1, 'border_color': 'black'})
+    bold_format = workbook.add_format(
+        {'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1, 'border_color': 'black'})
+    leave_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#FFFF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,
+         'border_color': 'black'})
+
+    details_rows = 0
+
+    headers = ["From", "To", "Type", "Days Between", "*/11", "*/18", "*/11-*/18", "VL Prevented", "Total"]
+
+    worksheet.write_row(details_rows, 0, headers, bold_format)
+
+    for i in range(len(data)):
+        row = [
+            data.at[i, 'from'].strftime("%Y-%m-%d"),
+            data.at[i, 'to'].strftime("%Y-%m-%d"),
+            data.at[i, 'type'].upper() if data.at[i, 'type'] != 0 else '0',
+            data.at[i, 'days_between'],
+            data.at[i, '*/11'] if data.at[i, 'type'] != 0 else '',
+            data.at[i, '*/18'] if data.at[i, 'type'] != 0 else '',
+            data.at[i, '*/11-*/18'] if data.at[i, 'type'] != 0 else '',
+            data.at[i, 'vl_prevented'] if data.at[i, 'type'] != 0 else '',
+            data.at[i, 'total']
+        ]
+
+        if data.at[i, 'to'].strftime("%m-%d") == "06-30":
+            row = ["Vacation Added"] + row[1:]
+            worksheet.write_row(details_rows + i + 1, 0, row, bold_format)
+            details_rows += 1
+
+        worksheet.write_row(details_rows + i + 1, 0, row, leave_format if data.at[i, 'type'] != 0 else cell_format)
+
+    workbook.close()
+
+
+def gen_excel(data, id):
+    if not os.path.exists(dept):
+        os.makedirs(dept)
     workbook = xlsxwriter.Workbook(f'{dept}/{id}-{name.strip().replace(" ", "")}.xlsx')
     worksheet = workbook.add_worksheet()
     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
     bold_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
-    leave_format = workbook.add_format(
+    el_format = workbook.add_format(
         {'bold': True, 'bg_color': '#FFFF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
          'border_color': 'black'})
+    ml_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#00FF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black'})
+    mtl_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#009eff', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black'})
+    lop_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#ff00fe', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black'})
+    leave_format = {
+        "el": el_format,
+        "ml": ml_format,
+        "mtl": mtl_format,
+        "lop": lop_format
+    }
     details_rows = 3
     worksheet.write(0, 0, "Name", cell_format)
     worksheet.write(0, 1, name, cell_format)
     worksheet.write(1, 0, "Date of Joining", cell_format)
     worksheet.write(1, 1, doj.strftime("%d-%m-%Y"), cell_format)
     worksheet.write(2, 0, "Campus", cell_format)
-    worksheet.write(2, 1, "Anna University Regional Campus - Tirunelveli", cell_format)
+    worksheet.write(2, 1, "lkjkjaljdsAnna University Regional Campus - Tirunelveli", cell_format)
     headers = ["Type of Leave", '', '', '', '*/11', '*/18', '*/11-*/18', 'Total']
 
     worksheet.write_row(details_rows, 0, headers, bold_format)
     cell_format.set_bold(False)
-    worksheet.set_default_row(20)
+    worksheet.set_default_row(25)
     worksheet.set_column(0, 0, 15)
     worksheet.set_column(0, 1, 15)
     worksheet.set_column(0, 2, 15)
-    # Assuming 'data' is your DataFrame and 'worksheet' is your Excel worksheet
-
-    current_row = 0
-    vac_added_count = 0
-    current_year = doj.year
-    vac_year_added = []
-    while current_row < len(data):
-        # print(f"Current 'to' date: {data['to'].iloc[current_row]}")
-        try:
-            if data['from'].iloc[current_row].strftime("%m-%d") == "07-01":
-                current_year = data['from'].iloc[current_row].year
-                if data.at[current_row, 'type'] != 0:
-                    row = [data.at[current_row, 'type'].upper(), data.at[current_row, 'from'].strftime("%d-%m-%Y"),
-                           data.at[current_row, 'to'].strftime("%d-%m-%Y"), data.at[current_row, 'days_between'], '',
-                           '', data.at[current_row, 'days_between']]
-                    worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, leave_format)
-                    current_row += 1
-                else:
-                    row = [data.at[current_row, 'from'].strftime("%d-%m-%Y"),
-                           data.at[current_row, 'to'].strftime("%d-%m-%Y"), '', data.at[current_row, 'days_between'],
-                           data.at[current_row, '*/11'], data.at[current_row, '*/18'],
-                           data.at[current_row, '*/11-*/18']]
-
-                    worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, cell_format)
-
-                    current_row += 1
-
-            while current_row < len(data) and data['from'].iloc[current_row].strftime("%m-%d") != "07-01":
-                # print(f"Current 'from' date: {data['from'].iloc[current_row].strftime('%m-%d')}")
-
-                if data.at[current_row, 'type'] == 0:
-                    # print("Type 0")
-                    # Writing specific data to the worksheet for type 0
-                    row = [data.at[current_row, 'from'].strftime("%d-%m-%Y"),
-                           data.at[current_row, 'to'].strftime("%d-%m-%Y"), '', data.at[current_row, 'days_between'],
-                           data.at[current_row, '*/11'], data.at[current_row, '*/18'],
-                           data.at[current_row, '*/11-*/18']]
-                    worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, cell_format)
-                    current_row += 1
-                else:
-                    # print("Other Type")
-                    # Writing different data to the worksheet for other types
-                    row = [data.at[current_row, 'type'].upper(), data.at[current_row, 'from'].strftime("%d-%m-%Y"),
-                           data.at[current_row, 'to'].strftime("%d-%m-%Y"), data.at[current_row, 'days_between'], '',
-                           '', data.at[current_row, 'days_between']]
-                    worksheet.write_row(current_row + vac_added_count + details_rows + 1, 0, row, leave_format)
-                    current_row += 1
-
-                if current_row == len(data):
-                    # print("Reached end of data")
-                    current_row -= 1
-                    break
-        except IndexError as e:
-            print(current_row)
-            print(e.with_traceback())
-
-        if current_row < len(data) and data.at[current_row, 'to'].year == 2023:
-            print(row)
-            print(data.iloc[current_row])
-            # Adding 'Add Vacation' row after inner loop completes
-        row = ['Add Vacation', f"{current_year}-{current_year + 1}", '',
-               data.at[current_row - (1 if current_row != len(data) - 1 else 0), 'vl_prevented'], '', '', '']
-        # if not current_year == 2022:
-        worksheet.write_row(current_row + vac_added_count + details_rows + (2 if current_row == len(data)-1  else 1), 0, row,
-                                bold_format)
-        vac_year_added.append(f"{current_year}-{current_year + 1}")
-        # if current_row != len(data)-1:
-        #     current_row += 1
-        vac_added_count += 1
-        print(current_year, current_row, len(data))
-
-        if current_row == len(data) - 1:
-            break
-
-    for i in range(len(total)):
-        worksheet.write(i + 1 + details_rows, 7, total[i], bold_format)
+    data["*/11"] = data["*/11"].apply(lambda x: int(x) if x != '' else x)
+    data["*/18"] = data["*/18"].apply(lambda x: int(x) if x != '' else x)
+    data["*/11-*/18"] = data["*/11-*/18"].apply(lambda x: int(x) if x != '' else x)
+    data["total"] = data["total"].apply(lambda x: int(x) if x != '' else x)
+    rows = []
+    for i in range(len(data)):
+        row_values = data.iloc[i].copy().tolist()
+        rows.append(row_values)
+        print(data.at[i, 'to'])
+        if data.at[i, 'to'].strftime("%d-%m") == '30-06' or i == len(data) - 1:
+            rows.append(["Add Vacation", f'{data["to"].iloc[i].year - 1}-{data["to"].iloc[i].year}', '',
+                         data.at[i, 'vl_prevented'],
+                         '', '', '', '', data.at[i, 'vl_prevented'] + data.at[i, 'total']])
+    data = pd.DataFrame(rows, columns=["from", "to", "type", "days", "/11", "/18", "/11-/18", "vl", "total"])
+    data = data.drop('vl', axis=1)
+    print(data["/11"])
+    print(data)
+    for i in range(len(data)):
+        row = data.iloc[i].tolist()
+        if row[2] == 0:
+            worksheet.write_row(i + 4, 0,
+                                [row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + [''] + row[3:],
+                                cell_format)
+        elif row[2] in ['el', 'ml', 'mtl', 'lop']:
+            print([row[2], row[0], row[1]] + row[3:])
+            worksheet.write_row(i + 4, 0,
+                                [row[2].upper(), row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + row[3:],
+                                leave_format[row[2]])
+        else:
+            worksheet.write_row(i + 4, 0, row, bold_format)
     workbook.close()
 
 
@@ -325,8 +505,9 @@ if __name__ == "__main__":
         host="localhost", port="3306", user="root", database="facultyleavedb"
     )
     cursor = db.cursor()
-    id = "27002"
-    data, total = calculate_leave(id, cursor)
-    data.to_csv('data.csv', index=False)
-    print(data)
-    generate_excel(data, total, id)
+    # ids = [12222, 12223, 12224, 25001, 25005, 25007, 25009, 25010, 25012, 25013, 25019, 25030, 13331, 13332, 13333,
+    #        27002]
+    ids = [30002, 20003, 30003, 45000, 45001]
+    for i in ids:
+        data, total = calculate_leave(i, cursor)
+        gen_excel(data, i)
