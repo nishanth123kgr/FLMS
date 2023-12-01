@@ -147,22 +147,22 @@ def upload_file():
             # Update the EL table
             for i in range(len(el)):
                 row = el[i]
-                
+                query = ''
                 try:
                     total = get_total_days(row[0], row[1])
-                    query = 'INSERT INTO el (id, dept, `from`, `to`, from_prefix, to_prefix, from_suffix, to_suffix, date_of_rejoin, total) VALUES (%s, "%s", "%s", "%s", %s, %s, %s, %s, %s, %s)'% (
-                            info["id"],
-                            info["department"],
-                            row[0],
-                            row[1],
-                            row[2][0] if row[2][0] == "NULL" else '"' + row[2][0] + '"',
-                            row[2][1] if row[2][1] == "NULL" else '"' + row[2][1] + '"',
-                            row[2][2] if row[2][2] == "NULL" else '"' + row[2][2] + '"',
-                            row[2][3] if row[2][3] == "NULL" else '"' + row[2][3] + '"',
-                            row[3] if row[3] == "NULL" else '"' + row[3] + '"',
-                            total,
-                        )
-                    print(query)
+                    query = 'INSERT INTO el (id, dept, `from`, `to`, from_prefix, to_prefix, from_suffix, to_suffix, date_of_rejoin, total) VALUES (%s, "%s", "%s", "%s", %s, %s, %s, %s, %s, %s)' % (
+                        info["id"],
+                        info["department"],
+                        row[0],
+                        row[1],
+                        row[2][0] if row[2][0] == "NULL" else '"' + row[2][0] + '"',
+                        row[2][1] if row[2][1] == "NULL" else '"' + row[2][1] + '"',
+                        row[2][2] if row[2][2] == "NULL" else '"' + row[2][2] + '"',
+                        row[2][3] if row[2][3] == "NULL" else '"' + row[2][3] + '"',
+                        row[3] if row[3] == "NULL" else '"' + row[3] + '"',
+                        total,
+                    )
+                    # print(query)
                     cursor.execute(
                         query
                     )
@@ -170,9 +170,9 @@ def upload_file():
                     cursor.reset()
                 except Exception as e:
                     if "Duplicate entry" not in str(e):
-                        print(query)
-                        print(row)
-                        print(e)
+                        # print(query)
+                        # print(row)
+                        # print(e)
                         return {
                             "error": "Error parsing data on row "
                             + str(i + 12)
@@ -184,6 +184,7 @@ def upload_file():
                 if table:
                     for i in range(len(table)):
                         row = table[i]
+                        print(row)
                         try:
                             total = get_total_days(row[0], row[1])
                             query = 'INSERT INTO %s (id, dept, `from`, `to`, medical_fittness_on, from_prefix, to_prefix, from_suffix, to_suffix, doj,total) VALUES (%s, "%s", "%s", "%s",%s, %s, %s, %s, %s, "%s", %s)'% (
@@ -208,6 +209,7 @@ def upload_file():
                                     row[5],
                                     total,
                                 )
+                            print(query)
                             cursor.execute(
                                 query
                             )

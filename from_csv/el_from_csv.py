@@ -88,6 +88,7 @@ def get_el(file, sheet_name):
     for i, row in df.iterrows():
         row = list(map(str, row.fillna("NULL").tolist()))
         row = list(map(str.strip, row))
+        print(row)
         if not set(row).issubset({"NULL", "-"}):
             if row[0] != "NULL" and row[1] != "NULL" and row[0] != "-" and row[1] != "-":
                 # row[-1] = str(row[-1]).removesuffix("*") if row[-1] != "NULL" else row[-1]
@@ -103,4 +104,4 @@ def get_el(file, sheet_name):
 
 
 if __name__ == "__main__":
-    print(get_el("../09-Dr.M. Navabarathi-23.08.2023.xlsx", "EL"))
+    print(get_el("../Dr.BJ-07.09.2023.xlsx", "EL"))

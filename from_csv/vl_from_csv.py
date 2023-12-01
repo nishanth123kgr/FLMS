@@ -26,7 +26,6 @@ def convert_to_usable_format(df):
 def get_vl_data(file, sheet_name):
     df = pd.read_excel(file, sheet_name=sheet_name)
     df = df.iloc[10:, :7]
-    print(df)
     df = df.reset_index(drop=True)
     df = convert_to_usable_format(df)
     df['Summer / Winter'] = df['Summer / Winter'].apply(lambda x: x.lower())
@@ -89,13 +88,71 @@ def get_missing_dates(prevented_dates, to_date):
     return dates
 
 
+def g(from_date, to_date, availed_dates):
+    if from_date == "NULL" or to_date == "NULL" or from_date is None or to_date is None:
+        return []
+    elif availed_dates[0][0] == from_date and availed_dates[0][1] == to_date:
+        return []
+    val = []
+    for i in range(len(availed_dates)):
+        if availed_dates[i][0] != "NULL":
+            val.append(availed_dates[i])
+    if from_date.strftime('%d-%m-%Y') == '09-01-2010':
+        print(from_date, to_date, availed_dates, val)
+    if not val:
+        return [[from_date, to_date]]
+    result = []
+    if val:
+        try:
+            if val[0][0] != "NULL" and val[0][0].strftime("%d-%m") != from_date.strftime("%d-%m"):
+                result.append(
+                    [
+                        from_date,
+                        val[0][0] - datetime.timedelta(days=1),
+                    ]
+                )
+        except Exception as e:
+            raise Exception
+
+        for j in range(1, len(val) + 1):
+            # result.append(
+            #     [
+            #         val[j - 1][0],
+            #         val[j - 1][1],
+            #     ]
+            # )
+
+            if j < len(val):
+                if ((val[j][0] - datetime.timedelta(days=1)) - (
+                        val[j - 1][1] + datetime.timedelta(days=1))).days < 0:
+                    continue
+                result.append(
+                    [
+                        val[j - 1][1] + datetime.timedelta(days=1),
+                        val[j][0] - datetime.timedelta(days=1),
+                    ]
+                )
+        if val[-1][1] != to_date:
+            result.append(
+                [
+                    val[-1][1] + datetime.timedelta(days=1),
+                    to_date,
+                ]
+            )
+    else:
+        result.append(
+            [
+                from_date,
+                to_date,
+            ]
+        )
+    return result
+
+
 def get_prevented_dates(from_date, to_date, availed):
     if from_date == "NULL" or to_date == "NULL" or from_date is None or to_date is None:
         return []
-    elif availed[0][0] == "NULL":
-        return [[from_date, to_date]]
-    elif availed[0][0] == from_date and availed[0][1] == to_date:
-        return []
+
     prevented = []
     total = []
     for (index, avail) in enumerate(availed):
@@ -141,12 +198,13 @@ def generate_prevention_details(data):
         vac_from = data[i]["from"][0]
         vac_to = data[i]["to"][0]
         availed = list(zip(data[i]["Availed_from"], data[i]["Availed_to"]))
-        data[i]["Prevented"] = get_prevented_dates(vac_from, vac_to, availed)
+        data[i]["Prevented"] = g(vac_from, vac_to, availed)
+        if vac_from and vac_from != "NULL" and vac_from.strftime("%d-%m-%Y") == "09-01-2010":
+            print(vac_from, vac_to, availed, data[i]["Prevented"])
     return pd.DataFrame(data)
 
 
 def group_to_dict(group):
-    print(group)
     group_dict = {
         'from': group['from'].tolist(),
         'to': group['to'].tolist(),
@@ -167,13 +225,17 @@ def get_vl(file, sheet, cursor):
         lambda x: get_total_days(x['Availed From'], x['Availed To']) if (x["Availed From"] != "NULL" and x[
             "Availed To"] != "NULL") else 0,
         axis=1)
+    vl_data.to_excel("dataVL.xlsx")
 
     cursor.execute("SELECT `v_id`, `from`, `to` FROM `general_vacation_details`")
     gen_data = cursor.fetchall()
     gen_data = pd.DataFrame(gen_data, columns=['id', 'from', 'to'])
+    gen_data.to_excel('data.xlsx')
     gen_data = pd.merge(gen_data, vl_data, on='id', how='inner')
 
     grouped = gen_data.groupby('id').apply(group_to_dict).to_dict()
+
+    generate_prevention_details(grouped).T.to_excel("vl_prevention.xlsx")
     return generate_prevention_details(grouped).to_dict()
 
 
@@ -182,3 +244,4 @@ if __name__ == "__main__":
                                    database="facultyleavedb")
 
     db_cursor = mydb.cursor()
+    print(get_vl('../Dr.MS-21.06.2013.xlsx', "VL (2)", db_cursor))

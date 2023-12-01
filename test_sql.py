@@ -1,27 +1,18 @@
+import mysql.connector
 import pandas as pd
 
-# Sample DataFrame
-data = {'Column1': [1, 2, 3, 4, 5],
-        'Column2': ['A', 'B', 'C', 'D', 'E']}
-df = pd.DataFrame(data)
-print(df)
+db = mysql.connector.connect(
+    host="localhost", port="3306", user="root", database="facultyleavedb"
+)
+cursor = db.cursor()
 
-# Index from which you want to shift the rows down
-index_to_shift_down = 2
+cursor.execute("select v_id, total_days from general_vacation_details")
+details = pd.DataFrame(cursor.fetchall(), columns=['Year', 'Total'])
 
-# Number of positions to shift the rows
-shift_distance = 1
-df.loc[len(df)] = ''
-# Shift the rows down from the specified index
-df.iloc[index_to_shift_down+1:] = df.iloc[index_to_shift_down+1:].shift(periods=shift_distance)
+details["Year"] = details["Year"].apply(lambda x: x[:-1])
 
-# Fill NaN values in the first row after shifting
-df.iloc[index_to_shift_down] = df.iloc[index_to_shift_down].fillna('')
-
-# Insert an empty row at the end
+details_grp = details.groupby("Year")
+print(details_grp["Total"].sum())
 
 
-# Reset the index if needed
-df = df.reset_index(drop=True)
-
-print(df)
+cursor.close()

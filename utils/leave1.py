@@ -2,11 +2,8 @@ import mysql.connector
 import pandas as pd
 import datetime
 import ast
-import json
-import math
 import xlsxwriter
 import os
-import dateutil.relativedelta
 
 name = ''
 doj = ''
@@ -167,9 +164,6 @@ def calculate_leave(id, cursor):
     calc = pd.DataFrame(result, columns=["from", "to", "type"])
     mask = df.duplicated(subset='from', keep='first')
     print(calc)
-    calc.to_excel('dat.xlsx')
-    # calc = calc[~mask]
-    calc.to_excel("dat.xlsx")
     calc["from"] = pd.to_datetime(calc["from"])
     calc["to"] = pd.to_datetime(calc["to"])
 
@@ -224,9 +218,9 @@ def calculate_leave(id, cursor):
 
 
 def gen_excel(data, id):
-    if not os.path.exists(dept):
-        os.makedirs(dept)
-    workbook = xlsxwriter.Workbook(f'{dept}/{id}-{name.strip().replace(" ", "")}.xlsx')
+    if not os.path.exists(f'new/{dept}'):
+        os.makedirs(f'new/{dept}')
+    workbook = xlsxwriter.Workbook(f'new/{dept}/{id}-{name.strip().replace(" ", "")}.xlsx')
     worksheet = workbook.add_worksheet()
     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
@@ -304,11 +298,17 @@ if __name__ == "__main__":
     # ids = [30002, 20003, 30003, 45000, 45001]
     # ids = [24001, 24003]
     # ids = [26001, 55555]
-    ids = [13333] + [12222, 12223, 12224, 25001, 25005, 25007, 25009, 25010, 25012, 25013, 25019, 25030, 13331, 13332,
-                     13333, 27002] + [30002, 20003, 30003, 45000, 45001] + [26001, 55555] + [10001, 21002, 21003, 21010,
-                                                                                             66661]
-    print(ids)
+    # ids = [13333] + [12222, 12223, 12224, 25001, 25005, 25007, 25009, 25010, 25012, 25013, 25019, 25030, 13331, 13332,
+    #                  13333, 27002] + [30002, 20003, 30003, 45000, 45001] + [26001, 55555] + [10001, 21002, 21003, 21010,
+    #                                                                                         66661] + [24001, 24003]
+    # ids = [21002, 21003, 21010] #Civil
+    # ids = [20003, 29007, 30002, 30003, 45000] # SNH
+    # ids = [22003, 22222, 22007, 22223, 22015, 22019]  # CSE
+    # ids = [24001, 24003] #ECE
+    # ids = [26001, 55555, 55551] # MBA
+    # ids = [13331, 13332, 27002]  # MCA
+    ids = [25030, 25012, 25009, 12223, 25010, 25005, 12222, 25019, 25007, 25001]  # MECH
+    # ids = [32546, 22021]
     for i in ids:
         data, total = calculate_leave(i, cursor)
-        data.to_excel("sheet.xlsx")
         gen_excel(data, i)
