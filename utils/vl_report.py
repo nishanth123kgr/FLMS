@@ -9,12 +9,10 @@ import xlsxwriter
 
 def get_vl_details(id, cursor):
     cursor.execute(f"select `vac_id`,  `prevented` from vl where staff_id={id}")
-    # details = pd.DataFrame(cursor.fetchall(), columns=['Year', 'Availed From', 'Availed To', 'Prevented'])
     prevented_details = cursor.fetchall()
     cursor.reset()
 
     cursor.execute(f"select `vac_id`, `availed_from`, `availed_to` from vl where staff_id={id}")
-    # details = pd.DataFrame(cursor.fetchall(), columns=['Year', 'Availed From', 'Availed To', 'Prevented'])
     availed_details = cursor.fetchall()
     cursor.reset()
 
@@ -79,11 +77,8 @@ def get_general_details(id, cursor):
     return df
 
 
-def generate_excel(data, id, name, dept, doj):
-    if not os.path.exists(f'VL/{dept}/'):
-        os.makedirs(f'VL/{dept}/')
-    workbook = xlsxwriter.Workbook(f'VL/{dept}/{id}_{name.strip().replace(" ", "")}_VL.xlsx')
-    worksheet = workbook.add_worksheet()
+def generate_excel(data, id, name, dept, doj, workbook):
+    worksheet = workbook.add_worksheet("VL")
     worksheet.set_column('A:L', 12)
 
     merge_ranges = [
@@ -191,7 +186,6 @@ def generate_excel(data, id, name, dept, doj):
                 worksheet.merge_range(f'A{sums[0]}:A{row - 1}', f'20{year[:2]}-20{year[3:5]}', cell_format_center)
             sums = [0, 0, 0]
 
-
         from_date = datetime.strptime(from_date, "%Y-%m-%d") if from_date else '-'
         to_date = datetime.strptime(to_date, "%Y-%m-%d") if to_date else '-'
         if props[0] == row - 1:
@@ -202,7 +196,8 @@ def generate_excel(data, id, name, dept, doj):
             if from_date != '-' and to_date != '-':
                 worksheet.write(f"E{props[0]}", (to_date - from_date).days + 1, cell_format_center)
         else:
-            worksheet.merge_range(f"C{props[0]}:C{row - 1}", from_date.strftime("%d-%m-%Y") if from_date != '-' else '-',
+            worksheet.merge_range(f"C{props[0]}:C{row - 1}",
+                                  from_date.strftime("%d-%m-%Y") if from_date != '-' else '-',
                                   cell_format_center)
             worksheet.merge_range(f"D{props[0]}:D{row - 1}", to_date.strftime("%d-%m-%Y") if to_date != '-' else '-',
                                   cell_format_center)
@@ -219,7 +214,6 @@ def generate_excel(data, id, name, dept, doj):
                 worksheet.write(f"B{props[0]}", 'Summer', cell_format_center)
             else:
                 worksheet.merge_range(f"B{props[0]}:B{row - 1}", "Summer", cell_format_center)
-    workbook.close()
 
 
 def convert_data(data):
@@ -244,12 +238,7 @@ def get_staff_details(id, cursor):
     return name, dept, doj
 
 
-if __name__ == "__main__":
-    id = 22003
-    db = mysql.connector.connect(
-        host="localhost", port="3306", user="root", database="facultyleavedb"
-    )
-    cursor = db.cursor()
+def generate_vl(id, cursor, workbook):
     name, dept, doj = get_staff_details(id, cursor)
     prevention, availed = get_vl_details(id, cursor)
     general_details = get_general_details(id, cursor)
@@ -268,6 +257,16 @@ if __name__ == "__main__":
 
     new1 = pd.concat([general_details, availed, prevention], axis=1, join='outer').sort_index()
     data = convert_data(new1)
-    generate_excel(data, id, name, dept, doj)
-    new1.to_excel("vl.xlsx")
+    generate_excel(data, id, name, dept, doj, workbook)
+
+
+if __name__ == "__main__":
+    id = 22019
+    db = mysql.connector.connect(
+        host="localhost", port="3306", user="root", database="facultyleavedb"
+    )
+    cursor = db.cursor()
+    workbook = xlsxwriter.Workbook(f'VL/{id}_VL.xlsx')
+    generate_vl(id, cursor, workbook)
+    workbook.close()
     cursor.close()

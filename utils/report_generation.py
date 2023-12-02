@@ -6,9 +6,11 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import mysql.connector
+
+
 # import xlsx2pdf.transformators
 
-def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf=False):
+def generate_report(cursor, id, workbook, need_attendance=False, need_remarks='', need_pdf=False):
     def with_permission_fun(from_prefix, to_prefix, from_suffix, to_suffix):
         prefix = []
         if from_prefix and to_prefix:
@@ -89,7 +91,7 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
         random_name = random_uuid[:8]
         return random_name
 
-    query = "SELECT * FROM `staff` WHERE id=" + id + ";"
+    query = f"SELECT * FROM `staff` WHERE id={id};"
     cursor.execute(query)
     data = cursor.fetchall()
     data_el = getdata('el', id)
@@ -98,9 +100,8 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
     data_mtl = getdata('mtl', id)
     sorted_data = sorted(data_lop + data_el + data_ml + data_mtl, key=lambda x: x[0])
     xlname = generate_random_name()
-    workbook = xlsxwriter.Workbook("static/reports/" + xlname + '.xlsx')
-    worksheet = workbook.add_worksheet()
-    worksheet.set_column('A:M', 12)
+    worksheet = workbook.add_worksheet("EL")
+    worksheet.set_column('A:L', 12)
 
     merge_ranges = [
         (2, 0, 2, 3),
@@ -122,11 +123,13 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
         'align': 'center',  # Center alignment
         'text_wrap': True,  # Wrap text
         'valign': 'vcenter',  # Center vertically
+        'border': 1
     })
     cell_format_left = workbook.add_format({
         'align': 'center',  # Center alignment
         'text_wrap': True,  # Wrap text
         'valign': 'vcenter',  # Center vertically
+        'border': 1
     })
 
     # Perform the defined merges
@@ -185,7 +188,7 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                     if value:
                         worksheet.write(start_row, column_index, value[0], cell_format_left)
                     else:
-                        worksheet.write(start_row, column_index, "Nil", cell_format_left)
+                        worksheet.write(start_row, column_index, "-", cell_format_left)
 
                     column_index += 1
 
@@ -231,7 +234,7 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
                     if value:
                         worksheet.write(start_row, column_index, value[0], cell_format_left)
                     else:
-                        worksheet.write(start_row, column_index, "Nil", cell_format_left)
+                        worksheet.write(start_row, column_index, "-", cell_format_left)
                     column_index += 1
 
 
@@ -244,7 +247,6 @@ def generate_report(cursor, id, need_attendance=False, need_remarks='', need_pdf
             start_row += 1
     if need_remarks:
         worksheet.merge_range(*(start_row, 0, start_row, 12), need_remarks, cell_format_center)
-    workbook.close()
     if need_pdf:
         return {"name": xlname, "type": "pdf"}
     else:
@@ -256,4 +258,6 @@ if __name__ == "__main__":
                                    database="facultyleavedb")
 
     cursor = mydb.cursor()
-    generate_report(cursor, '22019')
+    workbook = xlsxwriter.Workbook("test.xlsx")
+    generate_report(cursor, '22019', workbook)
+    workbook.close()

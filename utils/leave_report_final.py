@@ -96,10 +96,7 @@ def g(df, leaves, i):
                 "type": 0,
             }
         )
-    print()
-    print(leaves)
-    print(result)
-    print()
+
     return result
 
 
@@ -162,8 +159,6 @@ def calculate_leave(id, cursor):
         leaves = sorted(leaves, key=lambda x: x[0])
         result.extend(g(df.copy(), leaves, i))
     calc = pd.DataFrame(result, columns=["from", "to", "type"])
-    mask = df.duplicated(subset='from', keep='first')
-    print(calc)
     calc["from"] = pd.to_datetime(calc["from"])
     calc["to"] = pd.to_datetime(calc["to"])
 
@@ -217,11 +212,8 @@ def calculate_leave(id, cursor):
     return calc, total_list
 
 
-def gen_excel(data, id):
-    if not os.path.exists(f'new/{dept}'):
-        os.makedirs(f'new/{dept}')
-    workbook = xlsxwriter.Workbook(f'new/{dept}/{id}-{name.strip().replace(" ", "")}.xlsx')
-    worksheet = workbook.add_worksheet()
+def gen_excel(data, id, workbook=None):
+    worksheet = workbook.add_worksheet(name="Consolidated Report")
     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
     bold_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
@@ -246,11 +238,11 @@ def gen_excel(data, id):
     }
     details_rows = 3
     worksheet.write(0, 0, "Name", cell_format)
-    worksheet.write(0, 1, name, cell_format)
+    worksheet.merge_range("B1:E1", name, cell_format)
     worksheet.write(1, 0, "Date of Joining", cell_format)
-    worksheet.write(1, 1, doj.strftime("%d-%m-%Y"), cell_format)
+    worksheet.merge_range("B2:E2", doj.strftime("%d-%m-%Y"), cell_format)
     worksheet.write(2, 0, "Campus", cell_format)
-    worksheet.write(2, 1, "Anna University Regional Campus - Tirunelveli", cell_format)
+    worksheet.merge_range("B3:E3", "Anna University Regional Campus - Tirunelveli", cell_format)
     headers = ["Type of Leave", '', '', '', '*/11', '*/18', '*/11-*/18', 'Total']
 
     worksheet.write_row(details_rows, 0, headers, bold_format)
@@ -285,7 +277,11 @@ def gen_excel(data, id):
                                 leave_format[row[2]])
         else:
             worksheet.write_row(i + 4, 0, row, bold_format)
-    workbook.close()
+
+
+def generate_consolidated_report(id, cursor, workbook):
+    data, total = calculate_leave(id, cursor)
+    gen_excel(data, id, workbook)
 
 
 if __name__ == "__main__":
@@ -307,8 +303,10 @@ if __name__ == "__main__":
     # ids = [24001, 24003] #ECE
     # ids = [26001, 55555, 55551] # MBA
     # ids = [13331, 13332, 27002]  # MCA
-    ids = [25030, 25012, 25009, 12223, 25010, 25005, 12222, 25019, 25007, 25001]  # MECH
+    # ids = [25030, 25012, 25009, 12223, 25010, 25005, 12222, 25019, 25007, 25001]  # MECH
     # ids = [32546, 22021]
+    ids = [22003]
     for i in ids:
-        data, total = calculate_leave(i, cursor)
-        gen_excel(data, i)
+        workbook = xlsxwriter.Workbook(f'./new/{i}.xlsx')
+        generate_consolidated_report(i, cursor, workbook)
+        workbook.close()
