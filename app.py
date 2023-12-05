@@ -404,7 +404,7 @@ def upload_vl_details(id, sheet):
     if request.method == "POST":
         uploaded_file = request.files["file"]
         if uploaded_file:
-            vl_data = get_vl(uploaded_file, sheet, cursor)
+            vl_data = get_vl(id, uploaded_file, sheet, cursor)
             for key, value in vl_data.items():
                 vl_data[key] = {
                     inner_key: convert_to_date_text(inner_value)
@@ -430,9 +430,8 @@ def update_vl(staff_id):
             for i in data:
                 data[i]["Availed_from"] = list(filter(lambda x: x not in [None, "NULL"], data[i]["Availed_from"]))
                 data[i]["Availed_to"] = list(filter(lambda x: x not in [None, "NULL"], data[i]["Availed_to"]))
-                print(data[i]["Availed_from"])
                 query = (
-                    f'INSERT into vl (vac_id, staff_id, availed_from, availed_to, prevented) values ("%s", %s, %s, %s, %s)'
+                    f'INSERT into vl (vac_id, staff_id, availed_from, availed_to, prevented, other_leave) values ("%s", %s, %s, %s, %s, %s)'
                     % (
                         i,
                         staff_id,
@@ -452,9 +451,14 @@ def update_vl(staff_id):
                             or data[i]["Prevented"] == "NULL"
                         )
                         else '"' + str(data[i]["Prevented"]) + '"',
+                        "NULL"
+                        if (
+                                data[i]["others"] is None
+                                or data[i]["others"] == "NULL"
+                        )
+                        else '"' + str(data[i]["others"]) + '"'
                     )
                 )
-                print(query)
                 cursor.execute(query)
 
                 db.commit()

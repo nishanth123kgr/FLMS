@@ -48,7 +48,7 @@ def extract_year_id(year_str):
 
 def convert_to_date_text(date, date_format="%d-%m-%Y"):
     if isinstance(date, str):
-        if date == "NULL":
+        if date == "NULL" or len(date) > 10:
             return date
         return datetime.datetime.strptime(date, "%d-%m-%Y").strftime("%Y-%m-%d")
     elif isinstance(date, datetime.date):

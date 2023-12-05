@@ -209,7 +209,8 @@ def group_to_dict(group):
         'Availed_from': group['Availed From'].apply(
             lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date() if x != "NULL" else "NULL").tolist(),
         'Availed_to': group['Availed To'].apply(
-            lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date() if x != "NULL" else "NULL").tolist()
+            lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date() if x != "NULL" else "NULL").tolist(),
+        'others': group['others'].tolist()
     }
     return group_dict
 
@@ -248,7 +249,8 @@ def insert_other_leavedata(id, vl_data, cursor):
                 elif i[0] >= i[4] and i[1] <= i[5]:
                     l_from = i[0]
                     l_to = i[1]
-                new_row = {'Availed From': l_from.strftime("%Y-%m-%d"), 'Availed To': l_to.strftime("%Y-%m-%d"), 'id': i[2], 'others': i[3]}
+                new_row = {'Availed From': l_from.strftime("%Y-%m-%d"), 'Availed To': l_to.strftime("%Y-%m-%d"),
+                           'id': i[2], 'others': f'{i[3]}_{id}_{l_from}'}
                 new_row = pd.Series(new_row)
                 vl_data.loc[len(vl_data)] = new_row
     print(vl_data)
