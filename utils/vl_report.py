@@ -77,24 +77,31 @@ def get_general_details(id, cursor):
     return df
 
 
-def generate_excel(data, id, name, dept, doj, workbook):
-    worksheet = workbook.add_worksheet("VL")
-    worksheet.set_column('A:L', 12)
+def get_year_total(year_id, cursor):
+    query = f'select sum(total_days) from general_vacation_details where (v_id="{year_id}s") or (v_id="{year_id}w");'
+    cursor.execute(query)
+    total = cursor.fetchone()[0]
+    return total
 
+
+def generate_excel(data, id, name, dept, doj, workbook, cursor):
+    worksheet = workbook.add_worksheet("VL")
+    worksheet.set_column('A:N', 12)
+    worksheet.set_default_row(20)
     merge_ranges = [
         (2, 0, 2, 3),
-        (2, 4, 2, 12),
+        (2, 4, 2, 13),
         (3, 0, 3, 3),
-        (3, 4, 3, 12),
+        (3, 4, 3, 13),
         (4, 0, 4, 3),
-        (4, 4, 4, 12),
+        (4, 4, 4, 13),
         (5, 0, 5, 3),
-        (5, 4, 5, 12),
+        (5, 4, 5, 13),
         (6, 0, 6, 3),
-        (6, 4, 6, 12),
-        (7, 0, 7, 12),
+        (6, 4, 6, 13),
+        (7, 0, 7, 13),
         (8, 0, 8, 4),
-        (8, 5, 8, 10)
+        (8, 5, 8, 13)
 
     ]
     cell_format_center = workbook.add_format({
@@ -109,10 +116,24 @@ def generate_excel(data, id, name, dept, doj, workbook):
         'valign': 'vcenter',  # Center vertically
         'border': 1
     })
+    year_format = {
+        0: workbook.add_format({'align': 'center',  # Center alignment
+                                'text_wrap': True,  # Wrap text
+                                'valign': 'vcenter',  # Center vertically
+                                'border': 1,
+                                'bg_color': '#ffff00'}),
+        1: workbook.add_format({
+            'align': 'center',  # Center alignment
+            'text_wrap': True,  # Wrap text
+            'valign': 'vcenter',  # Center vertically
+            'border': 1,
+            'bg_color': '#90EE90'
+        })
+    }
 
     # Perform the defined merges
-    worksheet.merge_range(*(0, 0, 0, 12), 'Annexure -II', cell_format_center)
-    worksheet.merge_range(*(1, 0, 1, 12), 'Anna University chennai', cell_format_center)
+    worksheet.merge_range(*(0, 0, 0, 13), 'Annexure -II', cell_format_center)
+    worksheet.merge_range(*(1, 0, 1, 13), 'Anna University chennai', cell_format_center)
     worksheet.merge_range(*merge_ranges[0], 'Name', cell_format_left)
     worksheet.merge_range(*merge_ranges[1], name, cell_format_left)
     worksheet.merge_range(*merge_ranges[2], 'Designation', cell_format_left)
@@ -125,32 +146,38 @@ def generate_excel(data, id, name, dept, doj, workbook):
     worksheet.merge_range(*merge_ranges[9], 'ANNA UNIVERSITY REGIONAL CAMPUS   -   TIRUNELVELI', cell_format_left)
     worksheet.merge_range(*merge_ranges[10], 'Details of Vacation', cell_format_center)
 
-    worksheet.merge_range("B9:M9", "Vacation", cell_format_center)
+    worksheet.merge_range("B9:N9", "Vacation", cell_format_center)
     worksheet.merge_range("A9:A11", "Year", cell_format_center)
-    worksheet.merge_range("B10:E10", "Period of Vacation", cell_format_center)
-    worksheet.merge_range("F10:I10", "Vacation Availed", cell_format_center)
-    worksheet.merge_range("J10:M10", "Vacation Prevention", cell_format_center)
-    worksheet.write("B11", "Summer / Winter", cell_format_center)
+    worksheet.merge_range("B10:F10", "Period of Vacation", cell_format_center)
+    worksheet.merge_range("G10:J10", "Vacation Availed", cell_format_center)
+    worksheet.merge_range("K10:N10", "Vacation Prevention", cell_format_center)
+    worksheet.write("B11", "Semester", cell_format_center)
     worksheet.write("C11", "From", cell_format_center)
     worksheet.write("D11", "To", cell_format_center)
     worksheet.write("E11", "Total", cell_format_center)
-    worksheet.write("F11", "From", cell_format_center)
-    worksheet.write("G11", "To", cell_format_center)
-    worksheet.write("H11", "Total", cell_format_center)
-    worksheet.write("I11", "Year Total", cell_format_center)
-    worksheet.write("J11", "From", cell_format_center)
-    worksheet.write("K11", "To", cell_format_center)
-    worksheet.write("L11", "Total", cell_format_center)
-    worksheet.write("M11", "Year Total", cell_format_center)
+    worksheet.write("F11", "Year Total", cell_format_center)
+    worksheet.write("G11", "From", cell_format_center)
+    worksheet.write("H11", "To", cell_format_center)
+    worksheet.write("I11", "Total", cell_format_center)
+    worksheet.write("J11", "Year Total", cell_format_center)
+    worksheet.write("K11", "From", cell_format_center)
+    worksheet.write("L11", "To", cell_format_center)
+    worksheet.write("M11", "Total", cell_format_center)
+    worksheet.write("N11", "Year Total", cell_format_center)
 
     row = 12
-    sums = [0, 0, 0]
+    sums = {"row": 0, "avail": 0, "preven": 0, "period": 0}
+    year_type = 0
     for year, values in data.items():
         from_date = values[0]['from']
         to_date = values[0]['to']
         if year[-1] == 'W' or row == 12:
-            sums[0] = row
-        props = [row, 0, 0]
+            sums["row"] = row
+        props = {
+            "row": row,
+            "avail": 0,
+            "preven": 0
+        }
         for items in values:
             avail_sum = (datetime.strptime(items['Availed To'], "%Y-%m-%d") - datetime.strptime(items['Availed From'],
                                                                                                 "%Y-%m-%d")).days + 1 if \
@@ -159,61 +186,90 @@ def generate_excel(data, id, name, dept, doj, workbook):
                 items['Prevented From'],
                 "%Y-%m-%d")).days + 1 if \
                 items['Prevented From'] not in ['', 'NULL'] and items['Prevented To'] not in ['', 'NULL'] else 0
-            props[1] += avail_sum
-            props[2] += preven_sum
-            worksheet.write(f"F{row}", items['Availed From'] if items['Availed From'] not in ['', 'NULL'] else '-',
-                            cell_format_center)
-            worksheet.write(f"G{row}", items['Availed To'] if items['Availed To'] not in ['', 'NULL'] else '-',
-                            cell_format_center)
-            worksheet.write(f"H{row}", avail_sum if avail_sum else '-', cell_format_center)
-            worksheet.write(f"J{row}", items['Prevented From'] if items['Prevented From'] not in ['', 'NULL'] else '-',
-                            cell_format_center)
-            worksheet.write(f"K{row}", items['Prevented To'] if items['Prevented To'] not in ['', 'NULL'] else '-',
-                            cell_format_center)
-            worksheet.write(f"L{row}", preven_sum if preven_sum else '-', cell_format_center)
+            props["avail"] += avail_sum
+            props["preven"] += preven_sum
+            availed_from = datetime.strptime(items['Availed From'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+                                                                                                            'Availed From'] not in [
+                                                                                                            '',
+                                                                                                            'NULL'] else '-'
+            availed_to = datetime.strptime(items['Availed To'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+                                                                                                        'Availed To'] not in [
+                                                                                                        '',
+                                                                                                        'NULL'] else '-'
+            prevented_from = datetime.strptime(items['Prevented From'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+                                                                                                                'Prevented From'] not in [
+                                                                                                                '',
+                                                                                                                'NULL'] else '-'
+            prevented_to = datetime.strptime(items['Prevented To'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+                                                                                                            'Prevented To'] not in [
+                                                                                                            '',
+                                                                                                            'NULL'] else '-'
+            worksheet.write(f"G{row}", availed_from,
+                            year_format[year_type])
+            worksheet.write(f"H{row}", availed_to,
+                            year_format[year_type])
+            worksheet.write(f"I{row}", avail_sum if avail_sum else '-', year_format[year_type])
+            worksheet.write(f"K{row}", prevented_from,
+                            year_format[year_type])
+            worksheet.write(f"L{row}", prevented_to,
+                            year_format[year_type])
+            worksheet.write(f"M{row}", preven_sum if preven_sum else '-', year_format[year_type])
 
             row += 1
-        sums[1] += props[1]
-        sums[2] += props[2]
+        sums["avail"] += props["avail"]
+        sums["preven"] += props["preven"]
         if year[-1] == 'S' or list(data.items())[-1] == (year, values):
-            if sums[0] == row - 1:
-                worksheet.write(f"I{sums[0]}", sums[1], cell_format_center)
-                worksheet.write(f"M{sums[0]}", sums[2], cell_format_center)
-                worksheet.write(f'A{sums[0]}', f'20{year[:2]}-20{year[3:5]}', cell_format_center)
+            if sums["row"] == row - 1:
+                worksheet.write(f'J{sums["row"]}', sums["avail"], year_format[year_type])
+                worksheet.write(f'N{sums["row"]}', sums["preven"], year_format[year_type])
+                worksheet.write(f'A{sums["row"]}', f'20{year[:2]}-20{year[3:5]}', year_format[year_type])
+                worksheet.write(f'F{sums["row"]}', get_year_total(year[:-2], cursor), year_format[year_type])
             else:
-                worksheet.merge_range(f'I{sums[0]}:I{row - 1}', sums[1], cell_format_center)
-                worksheet.merge_range(f'M{sums[0]}:M{row - 1}', sums[2], cell_format_center)
-                worksheet.merge_range(f'A{sums[0]}:A{row - 1}', f'20{year[:2]}-20{year[3:5]}', cell_format_center)
-            sums = [0, 0, 0]
+                worksheet.merge_range(f'J{sums["row"]}:J{row - 1}', sums["avail"], year_format[year_type])
+                worksheet.merge_range(f'N{sums["row"]}:N{row - 1}', sums["preven"], year_format[year_type])
+                worksheet.merge_range(f'A{sums["row"]}:A{row - 1}', f'20{year[:2]}-20{year[3:5]}',
+                                      year_format[year_type])
+                worksheet.merge_range(f'F{sums["row"]}:F{row - 1}', get_year_total(year[:-2], cursor),
+                                      year_format[year_type])
+            sums = {"row": 0, "avail": 0, "preven": 0}
 
         from_date = datetime.strptime(from_date, "%Y-%m-%d") if from_date else '-'
         to_date = datetime.strptime(to_date, "%Y-%m-%d") if to_date else '-'
-        if props[0] == row - 1:
-            worksheet.write(f"C{props[0]}", from_date.strftime("%d-%m-%Y") if from_date != '-' else '-',
-                            cell_format_center)
-            worksheet.write(f"D{props[0]}", to_date.strftime("%d-%m-%Y") if to_date != '-' else '-',
-                            cell_format_center)
+        if props["row"] == row - 1:
+            worksheet.write(f"C{props['row']}", from_date.strftime("%d-%m-%Y") if from_date != '-' else '-',
+                            year_format[year_type])
+            worksheet.write(f"D{props['row']}", to_date.strftime("%d-%m-%Y") if to_date != '-' else '-',
+                            year_format[year_type])
             if from_date != '-' and to_date != '-':
-                worksheet.write(f"E{props[0]}", (to_date - from_date).days + 1, cell_format_center)
+                worksheet.write(f"E{props['row']}", (to_date - from_date).days + 1, year_format[year_type])
+            else:
+                worksheet.write(f"E{props['row']}", '-', year_format[year_type])
         else:
-            worksheet.merge_range(f"C{props[0]}:C{row - 1}",
+            worksheet.merge_range(f"C{props['row']}:C{row - 1}",
                                   from_date.strftime("%d-%m-%Y") if from_date != '-' else '-',
-                                  cell_format_center)
-            worksheet.merge_range(f"D{props[0]}:D{row - 1}", to_date.strftime("%d-%m-%Y") if to_date != '-' else '-',
-                                  cell_format_center)
+                                  year_format[year_type])
+            worksheet.merge_range(f"D{props['row']}:D{row - 1}",
+                                  to_date.strftime("%d-%m-%Y") if to_date != '-' else '-',
+                                  year_format[year_type])
             if from_date != '-' and to_date != '-':
-                worksheet.merge_range(f"E{props[0]}:E{row - 1}", (to_date - from_date).days + 1 if from_date else '-',
-                                      cell_format_center)
+                worksheet.merge_range(f"E{props['row']}:E{row - 1}",
+                                      (to_date - from_date).days + 1 if from_date else '-',
+                                      year_format[year_type])
+            else:
+                worksheet.merge_range(f"E{props['row']}:E{row - 1}",
+                                      '-',
+                                      year_format[year_type])
         if year[-1] == 'W':
-            if props[0] == row - 1:
-                worksheet.write(f"B{props[0]}", 'Winter', cell_format_center)
+            if props['row'] == row - 1:
+                worksheet.write(f"B{props['row']}", 'Winter', year_format[year_type])
             else:
-                worksheet.merge_range(f"B{props[0]}:B{row - 1}", "Winter", cell_format_center)
+                worksheet.merge_range(f"B{props['row']}:B{row - 1}", "Winter", year_format[year_type])
         else:
-            if props[0] == row - 1:
-                worksheet.write(f"B{props[0]}", 'Summer', cell_format_center)
+            if props['row'] == row - 1:
+                worksheet.write(f"B{props['row']}", 'Summer', year_format[year_type])
             else:
-                worksheet.merge_range(f"B{props[0]}:B{row - 1}", "Summer", cell_format_center)
+                worksheet.merge_range(f"B{props['row']}:B{row - 1}", "Summer", year_format[year_type])
+            year_type = 0 if year_type == 1 else 1
 
 
 def convert_data(data):
@@ -257,7 +313,7 @@ def generate_vl(id, cursor, workbook):
 
     new1 = pd.concat([general_details, availed, prevention], axis=1, join='outer').sort_index()
     data = convert_data(new1)
-    generate_excel(data, id, name, dept, doj, workbook)
+    generate_excel(data, id, name, dept, doj, workbook, cursor)
 
 
 if __name__ == "__main__":

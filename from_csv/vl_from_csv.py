@@ -199,8 +199,6 @@ def generate_prevention_details(data):
         vac_to = data[i]["to"][0]
         availed = list(zip(data[i]["Availed_from"], data[i]["Availed_to"]))
         data[i]["Prevented"] = g(vac_from, vac_to, availed)
-        if vac_from and vac_from != "NULL" and vac_from.strftime("%d-%m-%Y") == "09-01-2010":
-            print(vac_from, vac_to, availed, data[i]["Prevented"])
     return pd.DataFrame(data)
 
 
@@ -216,32 +214,72 @@ def group_to_dict(group):
     return group_dict
 
 
-def get_vl(file, sheet, cursor):
+def get_other_leaves(id, type, cursor):
+    cursor.execute(
+        f"SELECT DISTINCT"
+        f" a.`from` AS a_from, a.`to` AS a_to, v.v_id, v.`from` AS v_from, v.`to` AS v_to "
+        f"FROM `{type}` a, `general_vacation_details` v "
+        f"WHERE v.`from` >= a.`from` AND a.`to` >= v.`to` and a.id={id}")
+    leave_data = cursor.fetchall()
+    cursor.reset()
+    return leave_data
+
+
+def insert_other_leavedata(id, vl_data, cursor):
+    print(vl_data['Availed From'].iloc[0], type(vl_data['Availed From'].iloc[0]))
+    for leave_type in ['el', 'ml', 'mtl', 'lop']:
+        others = [[from_date, to_date, leave_id, leave_type, v_from, v_to] for
+                  from_date, to_date, leave_id, v_from, v_to in
+                  get_other_leaves(id, leave_type, cursor)]
+        if others:
+            print(others)
+            for i in others:
+                l_from = None
+                l_to = None
+                if i[0] <= i[4] and i[1] >= i[5]:
+                    l_from = i[4]
+                    l_to = i[5]
+                elif i[0] <= i[4] and i[1] <= i[5]:
+                    l_from = i[4]
+                    l_to = i[1]
+                elif i[0] >= i[4] and i[1] >= i[5]:
+                    l_from = i[0]
+                    l_to = i[5]
+                elif i[0] >= i[4] and i[1] <= i[5]:
+                    l_from = i[0]
+                    l_to = i[1]
+                new_row = {'Availed From': l_from.strftime("%Y-%m-%d"), 'Availed To': l_to.strftime("%Y-%m-%d"), 'id': i[2], 'others': i[3]}
+                new_row = pd.Series(new_row)
+                vl_data.loc[len(vl_data)] = new_row
+    print(vl_data)
+    return vl_data
+
+
+def get_vl(id, file, sheet, cursor):
     vl_data = get_vl_data(file, sheet)
     generate_id(vl_data)
     vl_data.drop(['Year', 'Summer / Winter', "From", "To"], axis=1, inplace=True)
     vl_data = vl_data.drop_duplicates()
+    vl_data.reset_index(drop=True, inplace=True)
+    vl_data['others'] = "NULL"
+    insert_other_leavedata(id, vl_data, cursor)
     vl_data['total_days'] = vl_data.apply(
         lambda x: get_total_days(x['Availed From'], x['Availed To']) if (x["Availed From"] != "NULL" and x[
             "Availed To"] != "NULL") else 0,
         axis=1)
-    vl_data.to_excel("dataVL.xlsx")
-
     cursor.execute("SELECT `v_id`, `from`, `to` FROM `general_vacation_details`")
     gen_data = cursor.fetchall()
+    cursor.reset()
     gen_data = pd.DataFrame(gen_data, columns=['id', 'from', 'to'])
-    gen_data.to_excel('data.xlsx')
     gen_data = pd.merge(gen_data, vl_data, on='id', how='inner')
-
+    print(gen_data)
     grouped = gen_data.groupby('id').apply(group_to_dict).to_dict()
-
-    generate_prevention_details(grouped).T.to_excel("vl_prevention.xlsx")
     return generate_prevention_details(grouped).to_dict()
 
 
 if __name__ == "__main__":
     mydb = mysql.connector.connect(host="localhost", port="3306", user="root",
                                    database="facultyleavedb")
-
+    id = '22007'
     db_cursor = mydb.cursor()
-    print(get_vl('../Dr.MS-21.06.2013.xlsx', "VL (2)", db_cursor))
+    print(get_vl(id, '../Dr.MS-21.06.2013.xlsx', "VL (2)", db_cursor))

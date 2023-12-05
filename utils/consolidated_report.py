@@ -12,7 +12,6 @@ def consolidated_report(id, cursor):
     if not os.path.exists(f"Consolidated_Reports/{dept}"):
         os.makedirs(f"Consolidated_Reports/{dept}")
     workbook = xlsxwriter.Workbook(f"Consolidated_Reports/{dept}/{id}-{name.strip().replace(' ', '')}.xlsx")
-    print(workbook)
     generate_consolidated_report(id, cursor, workbook)
     generate_vl(id, cursor, workbook)
     generate_report(cursor,id, workbook)
@@ -25,6 +24,20 @@ if __name__ == '__main__':
         host="localhost", port="3306", user="root", database="facultyleavedb"
     )
     cursor = db.cursor()
-    consolidated_report(id, cursor)
+    civil_ids = [21002, 21003, 21010]
+    snh_ids = [20003, 29007, 30002, 30003, 45000]
+    cse_ids = [22003, 22222, 22007, 22223, 22015, 22019]
+    ece_ids = [24001, 24003]
+    mba_ids = [26001, 55555, 55551]
+    mca_ids = [13331, 13332, 27002]
+    mech_ids = [25030, 25012, 25009, 12223, 25010, 25005, 12222, 25019, 25007, 25001]
+    other_ids = [32546, 22021]
+
+    combined_array = civil_ids + snh_ids + cse_ids + ece_ids + mba_ids + mca_ids + mech_ids + other_ids
+
+    print(combined_array)
+    for id in combined_array:
+        print(id)
+        consolidated_report(str(id), cursor)
     cursor.close()
     db.close()

@@ -428,6 +428,9 @@ def update_vl(staff_id):
         print(staff_id)
         try:
             for i in data:
+                data[i]["Availed_from"] = list(filter(lambda x: x not in [None, "NULL"], data[i]["Availed_from"]))
+                data[i]["Availed_to"] = list(filter(lambda x: x not in [None, "NULL"], data[i]["Availed_to"]))
+                print(data[i]["Availed_from"])
                 query = (
                     f'INSERT into vl (vac_id, staff_id, availed_from, availed_to, prevented) values ("%s", %s, %s, %s, %s)'
                     % (
@@ -435,14 +438,12 @@ def update_vl(staff_id):
                         staff_id,
                         "NULL"
                         if (
-                            data[i]["Availed_from"][0] is None
-                            or data[i]["Availed_from"][0] == "NULL"
+                            not data[i]["Availed_from"]
                         )
                         else '"' + str(data[i]["Availed_from"]) + '"',
                         "NULL"
                         if (
-                            data[i]["Availed_to"][0] is None
-                            or data[i]["Availed_to"][0] == "NULL"
+                            not data[i]["Availed_to"]
                         )
                         else '"' + str(data[i]["Availed_to"]) + '"',
                         "NULL"

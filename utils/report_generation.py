@@ -62,7 +62,7 @@ def generate_report(cursor, id, workbook, need_attendance=False, need_remarks=''
 
             data_final_updated = []
             for i, sublist in enumerate(data_final):
-                columns_to_keep = sublist[:2] + (on_permission[i],) + sublist[6:] + (remark[i],)
+                columns_to_keep = sublist[:2] + ((on_permission[i],) if on_permission else ()) + sublist[6:] + ((remark[i],) if remark else ())
                 data_final_updated.append(columns_to_keep)
             data_final_updated = [sublist + (type,) for sublist in data_final_updated]
             return data_final_updated
@@ -80,7 +80,7 @@ def generate_report(cursor, id, workbook, need_attendance=False, need_remarks=''
             remark = [item[0] for sublist in remark for item in sublist]
             data_final_updated = []
             for i, sublist in enumerate(data_final):
-                columns_to_keep = sublist[:4] + (on_permission[i],) + sublist[8:] + (remark[i],)
+                columns_to_keep = sublist[:4] + ((on_permission[i],) if on_permission else ()) + sublist[8:] + ((remark[i],) if remark else ())
                 data_final_updated.append(columns_to_keep)
             data_final_updated = [sublist + (type,) for sublist in data_final_updated]
             return data_final_updated
@@ -105,16 +105,16 @@ def generate_report(cursor, id, workbook, need_attendance=False, need_remarks=''
 
     merge_ranges = [
         (2, 0, 2, 3),
-        (2, 4, 2, 12),
+        (2, 4, 2, 11),
         (3, 0, 3, 3),
-        (3, 4, 3, 12),
+        (3, 4, 3, 11),
         (4, 0, 4, 3),
-        (4, 4, 4, 12),
+        (4, 4, 4, 11),
         (5, 0, 5, 3),
-        (5, 4, 5, 12),
+        (5, 4, 5, 11),
         (6, 0, 6, 3),
-        (6, 4, 6, 12),
-        (7, 0, 7, 12),
+        (6, 4, 6, 11),
+        (7, 0, 7, 11),
         (8, 0, 8, 4),
         (8, 5, 8, 10)
 
@@ -133,8 +133,8 @@ def generate_report(cursor, id, workbook, need_attendance=False, need_remarks=''
     })
 
     # Perform the defined merges
-    worksheet.merge_range(*(0, 0, 0, 12), 'Annexure -II', cell_format_center)
-    worksheet.merge_range(*(1, 0, 1, 12), 'Anna univeristy chennai', cell_format_center)
+    worksheet.merge_range(*(0, 0, 0, 11), 'Annexure -II', cell_format_center)
+    worksheet.merge_range(*(1, 0, 1, 11), 'Anna univeristy chennai', cell_format_center)
     worksheet.merge_range(*merge_ranges[0], 'Name', cell_format_center)
     worksheet.merge_range(*merge_ranges[1], data[0][1], cell_format_left)
     worksheet.merge_range(*merge_ranges[2], 'Designation', cell_format_left)
@@ -259,5 +259,5 @@ if __name__ == "__main__":
 
     cursor = mydb.cursor()
     workbook = xlsxwriter.Workbook("test.xlsx")
-    generate_report(cursor, '22019', workbook)
+    generate_report(cursor, '21002', workbook)
     workbook.close()

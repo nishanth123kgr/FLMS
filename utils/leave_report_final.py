@@ -213,7 +213,7 @@ def calculate_leave(id, cursor):
 
 
 def gen_excel(data, id, workbook=None):
-    worksheet = workbook.add_worksheet(name="Consolidated Report")
+    worksheet = workbook.add_worksheet(name="Leave Calculation")
     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
     bold_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
@@ -269,14 +269,21 @@ def gen_excel(data, id, workbook=None):
         row = data.iloc[i].tolist()
         if row[2] == 0:
             worksheet.write_row(i + 4, 0,
-                                [row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + [''] + row[3:],
+                                [row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + ['',
+                                                                                              f'=B{i + 5}-A{i + 5}+1',
+                                                                                              f'=ROUND(D{i + 5}/11,0)',
+                                                                                              f'=ROUND(D{i + 5}/18,0)',
+                                                                                              f'=E{i + 5}-F{i + 5}'] + [
+                                    '=G5' if i == 0 else f'=H{i + 4}+G{i + 5}'],
+
                                 cell_format)
         elif row[2] in ['el', 'ml', 'mtl', 'lop']:
             worksheet.write_row(i + 4, 0,
-                                [row[2].upper(), row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + row[3:],
+                                [row[2].upper(), row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + [
+                                    f'=C{i + 5}-B{i + 5}+1'] + row[4:-1] + ['=D5' if i == 0 else (f'=H{i+4}-D{i+5}' if row[2] == 'el' else f'=H{i+4}')],
                                 leave_format[row[2]])
         else:
-            worksheet.write_row(i + 4, 0, row, bold_format)
+            worksheet.write_row(i + 4, 0, row[:-1]+[f'=H{i+4}+D{i+5}'], bold_format)
 
 
 def generate_consolidated_report(id, cursor, workbook):
