@@ -30,7 +30,7 @@ if __name__ == '__main__':
     ece_ids = [24001, 24003]
     mba_ids = [26001, 55555, 55551]
     mca_ids = [13331, 13332, 27002]
-    mech_ids = [25030, 25012, 25009, 12223, 25010, 25005, 12222, 25019, 25007, 25001]
+    mech_ids = [25012, 25009, 12223, 25010, 25005, 25019, 25007, 25001]
     other_ids = [32546, 22021]
 
     combined_array = civil_ids + snh_ids + cse_ids + ece_ids + mba_ids + mca_ids + mech_ids + other_ids

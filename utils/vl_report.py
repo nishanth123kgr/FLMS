@@ -85,9 +85,8 @@ def get_other_leaves(id, cursor):
     cursor.reset()
     leaves = []
     for leave in other_leave:
-        leave = list(filter(lambda x: x != "NULL", eval(leave[0])))
+        leave = list(filter(lambda x: x != "NULL", eval(leave[0] if leave[0] else '[]')))
         leaves.extend(leave)
-    print(leaves)
     return leaves
 
 
@@ -330,9 +329,7 @@ def generate_vl(id, cursor, workbook):
     new1 = pd.concat([general_details, availed, prevention], axis=1, join='outer').sort_index()
     new1['others'] = np.nan
     set_other_leaves(id, cursor, new1)
-    print(new1)
     data = convert_data(new1)
-    print(data)
     generate_excel(data, id, name, dept, doj, workbook, cursor)
 
 

@@ -104,10 +104,14 @@ def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
     year = to_date
     vl_id = f'{str(year - 1)[2:]}-{str(year)[2:]}'
     total_vl = 0
+    total_period = 0
     for i in ['s', 'w']:
         query = 'select prevented from vl where vac_id=\'%s\' and staff_id=%s' % (vl_id + i, staff_id)
         cursor.execute(query)
         prevented = cursor.fetchall()
+        cursor.reset()
+        cursor.execute(f"select total_days from general_vacation_details where v_id='{vl_id + i}'")
+        total_period += cursor.fetchone()[0]
         cursor.reset()
         if len(prevented) > 0:
             prevented = ast.literal_eval(prevented[0][0].decode('utf-8')) if not isinstance(prevented[0][0],
@@ -118,7 +122,8 @@ def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
                     from_date = datetime.datetime.strptime(i[0], '%Y-%m-%d')
                     to_date = datetime.datetime.strptime(i[1], '%Y-%m-%d')
                     total_vl += (to_date - from_date).days + 1
-    return round(total_vl / 3) if total_vl <= 60 else 20
+    vl_prevention = 60 - (total_period - total_vl)
+    return round(vl_prevention/3) if vl_prevention >= 0 else 0
 
 
 def calculate_leave(id, cursor):
@@ -186,18 +191,11 @@ def calculate_leave(id, cursor):
             lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6,
                                                                                                30) else '-')
 
-    # final = pd.DataFrame()
-    # final['year'] = calc['from'].dt.year
-    # final["year"] = final["year"].apply(lambda x: f'{x}-{x + 1}')
-    # final.drop_duplicates(subset=['year'], inplace=True)
-    # final.reset_index(drop=True, inplace=True)
-    # final["vl_prevented"] = final["year"].apply(lambda x: calc_vl_prevented_total(int(x[-4:]), id, cursor, x))
     total = 0
     total_list = []
     for i in range(len(calc)):
         if calc.at[i, 'type'] == 0:
             total += calc.at[i, '*/11-*/18']
-            # total_list.append(total)
 
         else:
             if calc.at[i, 'type'] in ['el', 'lop']:
@@ -280,10 +278,11 @@ def gen_excel(data, id, workbook=None):
         elif row[2] in ['el', 'ml', 'mtl', 'lop']:
             worksheet.write_row(i + 4, 0,
                                 [row[2].upper(), row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + [
-                                    f'=C{i + 5}-B{i + 5}+1'] + row[4:-1] + ['=D5' if i == 0 else (f'=H{i+4}-D{i+5}' if row[2] == 'el' else f'=H{i+4}')],
+                                    f'=C{i + 5}-B{i + 5}+1'] + row[4:-1] + [
+                                    '=D5' if i == 0 else (f'=H{i + 4}-D{i + 5}' if row[2] == 'el' else f'=H{i + 4}')],
                                 leave_format[row[2]])
         else:
-            worksheet.write_row(i + 4, 0, row[:-1]+[f'=H{i+4}+D{i+5}'], bold_format)
+            worksheet.write_row(i + 4, 0, row[:-1] + [f'=H{i + 4}+D{i + 5}'], bold_format)
 
 
 def generate_consolidated_report(id, cursor, workbook):
