@@ -16,7 +16,6 @@ def get_ml_mtl_lop(file, sheet_name):
         row = list(map(str, row.fillna("NULL").tolist()))
         row = list(map(str.strip, row))
         leave_type = str(row[-1]).lower()
-        print(row)
         row = row[:-1]
         row[0] = remove_extra(row[0])
         row[1] = remove_extra(row[1])
@@ -24,6 +23,7 @@ def get_ml_mtl_lop(file, sheet_name):
         row = [convert_to_desired_format(str(date_str)) for date_str in row]
         row[4] = separate_prefix_suffix(row[0], row[1], row[4])
         if leave_type not in ["el", "-"]:
+            print(row)
             if leave_type == "ml":
                 ml.append(row)
             elif leave_type == "mtl":
@@ -37,5 +37,3 @@ def get_ml_mtl_lop(file, sheet_name):
 if __name__ == "__main__":
     ml_data, mtl_data, lop_data = get_ml_mtl_lop("../Dr.R.Banumathi-14.11.2023.xlsx", 'EL')
     print(ml_data)
-    print(mtl_data)
-    print(lop_data)

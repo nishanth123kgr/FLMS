@@ -220,9 +220,35 @@ def get_other_leaves(id, type, cursor):
         f"SELECT DISTINCT"
         f" a.`from` AS a_from, a.`to` AS a_to, v.v_id, v.`from` AS v_from, v.`to` AS v_to "
         f"FROM `{type}` a, `general_vacation_details` v "
-        f"WHERE v.`from` >= a.`from` AND a.`to` >= v.`to` and a.id={id}")
+        f"WHERE ((a.`from` BETWEEN v.`from` AND v.`to`)"
+        f"AND (a.`to` BETWEEN v.`from` AND v.`to`))"
+        f"and a.id={id}")
     leave_data = cursor.fetchall()
     cursor.reset()
+    cursor.execute(
+        f"SELECT DISTINCT"
+        f" a.`from` AS a_from, a.`to` AS a_to, v.v_id, v.`from` AS v_from, v.`to` AS v_to "
+        f"FROM `{type}` a, `general_vacation_details` v "
+        f"WHERE v.`from` >= a.`from` AND a.`to` >= v.`to` and a.id={id}")
+    leave_data += cursor.fetchall()
+    cursor.reset()
+    cursor.execute(
+        f"SELECT DISTINCT"
+        f" a.`from` AS a_from, a.`to` AS a_to, v.v_id, v.`from` AS v_from, v.`to` AS v_to "
+        f"FROM `{type}` a, `general_vacation_details` v "
+        f"WHERE (a.`from` BETWEEN v.`from` AND v.`to`)"
+        f"and a.id={id}")
+    leave_data += cursor.fetchall()
+    cursor.reset()
+    cursor.execute(
+        f"SELECT DISTINCT"
+        f" a.`from` AS a_from, a.`to` AS a_to, v.v_id, v.`from` AS v_from, v.`to` AS v_to "
+        f"FROM `{type}` a, `general_vacation_details` v "
+        f"WHERE (a.`to` BETWEEN v.`from` AND v.`to`)"
+        f"and a.id={id}")
+    leave_data += cursor.fetchall()
+    cursor.reset()
+
     return leave_data
 
 
@@ -282,6 +308,6 @@ def get_vl(id, file, sheet, cursor):
 if __name__ == "__main__":
     mydb = mysql.connector.connect(host="localhost", port="3306", user="root",
                                    database="facultyleavedb")
-    id = '22007'
+    id = '22003'
     db_cursor = mydb.cursor()
-    print(get_vl(id, '../Dr.MS-21.06.2013.xlsx', "VL (2)", db_cursor))
+    print(get_vl(id, '../01-Mrs.T.Kavitha-29.11.2023.xlsx', "Vl-oc (2)", db_cursor))

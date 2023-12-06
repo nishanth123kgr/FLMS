@@ -41,7 +41,6 @@ from docx2pdf import convert
 app = Flask(__name__)
 CORS(app)
 
-
 db = mysql.connector.connect(
     host="localhost", port="3306", user="root", database="facultyleavedb"
 )
@@ -175,40 +174,40 @@ def upload_file():
                         # print(e)
                         return {
                             "error": "Error parsing data on row "
-                            + str(i + 12)
-                            + " of EL sheet.\nError Description: "
-                            + str(e)
+                                     + str(i + 12)
+                                     + " of EL sheet.\nError Description: "
+                                     + str(e)
                         }
             # Update the ML, MTL, LOP table
             for name, table in [("ml", ml), ("mtl", mtl), ("lop", lop)]:
                 if table:
                     for i in range(len(table)):
                         row = table[i]
-                        print(row)
+                        print(row, row[1])
                         try:
                             total = get_total_days(row[0], row[1])
-                            query = 'INSERT INTO %s (id, dept, `from`, `to`, medical_fittness_on, from_prefix, to_prefix, from_suffix, to_suffix, doj,total) VALUES (%s, "%s", "%s", "%s",%s, %s, %s, %s, %s, "%s", %s)'% (
-                                    name,
-                                    info["id"],
-                                    info["department"],
-                                    row[0],
-                                    row[1],
-                                    "NULL" if (row[3] == "NULL" or row[3] == '-') else row[3],
-                                    row[4][0]
-                                    if row[4][0] == "NULL"
-                                    else '"' + row[4][0] + '"',
-                                    row[4][1]
-                                    if row[4][1] == "NULL"
-                                    else '"' + row[4][1] + '"',
-                                    row[4][2]
-                                    if row[4][2] == "NULL"
-                                    else '"' + row[4][2] + '"',
-                                    row[4][3]
-                                    if row[4][3] == "NULL"
-                                    else '"' + row[4][3] + '"',
-                                    row[5],
-                                    total,
-                                )
+                            query = 'INSERT INTO %s (id, dept, `from`, `to`, medical_fittness_on, from_prefix, to_prefix, from_suffix, to_suffix, doj,total) VALUES (%s, "%s", "%s", "%s",%s, %s, %s, %s, %s, "%s", %s)' % (
+                                name,
+                                info["id"],
+                                info["department"],
+                                row[0],
+                                row[1],
+                                "NULL" if (row[3] == "NULL" or row[3] == '-') else f'"{row[3]}"',
+                                row[4][0]
+                                if row[4][0] == "NULL"
+                                else '"' + row[4][0] + '"',
+                                row[4][1]
+                                if row[4][1] == "NULL"
+                                else '"' + row[4][1] + '"',
+                                row[4][2]
+                                if row[4][2] == "NULL"
+                                else '"' + row[4][2] + '"',
+                                row[4][3]
+                                if row[4][3] == "NULL"
+                                else '"' + row[4][3] + '"',
+                                row[5],
+                                total,
+                            )
                             print(query)
                             cursor.execute(
                                 query
@@ -222,9 +221,9 @@ def upload_file():
                                 print(e)
                                 return {
                                     "error": "Error parsing data on row "
-                                    + str(i + 12)
-                                    + " of EL sheet. Please check the data and try again. "
-                                    + str(e)
+                                             + str(i + 12)
+                                             + " of EL sheet. Please check the data and try again. "
+                                             + str(e)
                                 }
             return {"status": "success"}
         return {"status": "failed"}
@@ -431,33 +430,33 @@ def update_vl(staff_id):
                 data[i]["Availed_from"] = list(filter(lambda x: x not in [None, "NULL"], data[i]["Availed_from"]))
                 data[i]["Availed_to"] = list(filter(lambda x: x not in [None, "NULL"], data[i]["Availed_to"]))
                 query = (
-                    f'INSERT into vl (vac_id, staff_id, availed_from, availed_to, prevented, other_leave) values ("%s", %s, %s, %s, %s, %s)'
-                    % (
-                        i,
-                        staff_id,
-                        "NULL"
-                        if (
-                            not data[i]["Availed_from"]
+                        f'INSERT into vl (vac_id, staff_id, availed_from, availed_to, prevented, other_leave) values ("%s", %s, %s, %s, %s, %s)'
+                        % (
+                            i,
+                            staff_id,
+                            "NULL"
+                            if (
+                                not data[i]["Availed_from"]
+                            )
+                            else '"' + str(data[i]["Availed_from"]) + '"',
+                            "NULL"
+                            if (
+                                not data[i]["Availed_to"]
+                            )
+                            else '"' + str(data[i]["Availed_to"]) + '"',
+                            "NULL"
+                            if (
+                                    data[i]["Prevented"] is None
+                                    or data[i]["Prevented"] == "NULL"
+                            )
+                            else '"' + str(data[i]["Prevented"]) + '"',
+                            "NULL"
+                            if (
+                                    data[i]["others"] is None
+                                    or data[i]["others"] == "NULL"
+                            )
+                            else '"' + str(data[i]["others"]) + '"'
                         )
-                        else '"' + str(data[i]["Availed_from"]) + '"',
-                        "NULL"
-                        if (
-                            not data[i]["Availed_to"]
-                        )
-                        else '"' + str(data[i]["Availed_to"]) + '"',
-                        "NULL"
-                        if (
-                            data[i]["Prevented"] is None
-                            or data[i]["Prevented"] == "NULL"
-                        )
-                        else '"' + str(data[i]["Prevented"]) + '"',
-                        "NULL"
-                        if (
-                                data[i]["others"] is None
-                                or data[i]["others"] == "NULL"
-                        )
-                        else '"' + str(data[i]["others"]) + '"'
-                    )
                 )
                 cursor.execute(query)
 
@@ -617,13 +616,13 @@ def send_html_email(receiver_email, otp, name):
     </html>"""
 
     html_content = (
-        html_content_1
-        + date
-        + html_content_2
-        + name
-        + html_content_3
-        + otp
-        + html_content_4
+            html_content_1
+            + date
+            + html_content_2
+            + name
+            + html_content_3
+            + otp
+            + html_content_4
     )
 
     # Create a multipart message
@@ -692,6 +691,7 @@ def auth_success():
     else:
         return "You are not authorized to access this page"
 
+
 # Auth Ends
 
 def get_staff_from_name(name):
@@ -703,12 +703,15 @@ def get_staff_from_name(name):
     cursor.reset()
     return jsonify(namee)
 
+
 def set_run_font(run, font_name, font_size):
     run.font.name = font_name
     run.font.size = font_size
 
+
 def set_paragraph_alignment(paragraph, alignment):
     paragraph.alignment = alignment
+
 
 # def replace_text_in_docx(input_docx_file, output_docx_file, replacements, data_array):
 #     doc = docx.Document(input_docx_file)
@@ -760,9 +763,6 @@ def replace_text_in_docx(input_docx_file, output_docx_file, replacements, data_a
     doc.save(output_docx_file)
 
 
-
-
-
 def replace_placeholder(doc, target, replacement):
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
@@ -771,12 +771,11 @@ def replace_placeholder(doc, target, replacement):
                 run.text = new_text
 
 
-
-
 def generate_random_string(length=5):
-    characters = string.ascii_letters + string.digits 
+    characters = string.ascii_letters + string.digits
     random_string = ''.join(random.choice(characters) for _ in range(length))
     return random_string
+
 
 def insert_into_naan_mudhalvan_day(data):
     insert_query = """
@@ -787,15 +786,17 @@ def insert_into_naan_mudhalvan_day(data):
     cursor.reset()
     db.commit()
 
+
 def insert_into_timetable(data):
     insert_query = """
     INSERT INTO timetable (day, period, subject_id, academic_year, academic_semester)
     VALUES (%s, %s, %s, %s, %s)
     """
-    
+
     cursor.executemany(insert_query, data)
     cursor.reset()
     db.commit()
+
 
 def retrive_class_for_staff_in_specific_day(staff, day):
     query = f"""
@@ -807,10 +808,11 @@ def retrive_class_for_staff_in_specific_day(staff, day):
                     INNER JOIN staff st ON sh.staff_id = st.id
                     WHERE st.id = {staff} AND t.day = '{day}';
                 """
-    
+
     cursor.execute(query)
     classes = cursor.fetchall()
     return classes
+
 
 def get_weekdays_in_date_range(start_date_str, end_date_str):
     weekdays = ["MON", "TUE", "WED", "THU", "FRI"]
@@ -836,9 +838,9 @@ def api_add_timetable():
     acayear = request.form['acayear']
     acasem = request.form['acasem']
     naan = request.form['naan']
-    
+
     naan_mudhalvan_data = (dep, sem, acayear, acasem, naan)
-    
+
     timetable_data = []
     for day in ['mon', 'tue', 'wed', 'thu', 'fri']:
         for period in range(1, 9):
@@ -847,11 +849,12 @@ def api_add_timetable():
                 continue
             else:
                 timetable_data.append((day.upper(), period, subject_id, acayear, acasem))
-    
+
     insert_into_naan_mudhalvan_day(naan_mudhalvan_data)
     insert_into_timetable(timetable_data)
-    
+
     return "Hello"
+
 
 @app.route('/add_timetable', methods=['GET'])
 def add_timetable():
@@ -859,21 +862,23 @@ def add_timetable():
 
 
 @app.route('/api/update_timetable_timing', methods=['POST'])
-def update_timetable_timing():         
+def update_timetable_timing():
     for period in range(1, 9):
         start_time = request.form.get(f'start_{period}')
         end_time = request.form.get(f'end_{period}')
-                
+
         update_query = f"UPDATE `timetable_timing` SET `start_time`='{start_time}',`end_time`='{end_time} WHERE  `period`='{period}''"
-        #update_query = f"INSERT INTO `timetable_timing`(`start_time`, `end_time`, `period`) VALUES ('{start_time}','{end_time}','{period}')"
+        # update_query = f"INSERT INTO `timetable_timing`(`start_time`, `end_time`, `period`) VALUES ('{start_time}','{end_time}','{period}')"
         cursor.execute(update_query)
         cursor.reset()
-        db.commit()    
+        db.commit()
     return "True"
 
+
 @app.route('/update_timetable_timing', methods=['GET'])
-def update_timetable_timing_():          
+def update_timetable_timing_():
     return render_template('update_timetable_timing.html')
+
 
 @app.route('/api/insert_subjects', methods=['POST'])
 def insert_subject():
@@ -903,15 +908,18 @@ def insert_subject():
 
     return "Subject updated successfully!"
 
+
 @app.route('/add_subjects', methods=['GET'])
 def add_subject():
     return render_template('add_subject.html')
+
 
 @app.route("/api/retrive_all_staff", methods=["GET"])
 def retrive_all_staff():
     cursor.execute('SELECT `id`,`name` FROM `staff`')
     staffs = cursor.fetchall()
     return jsonify(staffs)
+
 
 @app.route("/api/retrive_all_subjects", methods=["GET"])
 def retrive_all_subjects():
@@ -924,7 +932,7 @@ def retrive_all_subjects():
 def get_staffs_classes(staff, fdate, tdate):
     days = get_weekdays_in_date_range(fdate, tdate)
     staffs_classes = []
-    
+
     for day in days:
         day_name, date = day[0], day[1]
         classes = retrive_class_for_staff_in_specific_day(staff, day_name)
@@ -958,12 +966,13 @@ JOIN
     cursor.reset()
     return jsonify(data)
 
+
 def get_free_staff(timetable, department, day, period, semester):
     staff_with_class = set()
     for row in timetable:
         if str(row[0]) == day and str(row[1]) == period:
             staff_with_class.add((row[6], row[7]))
-      
+
     staff_in_department = set()
     for row in timetable:
         if str(row[5]) == department and str(row[4]) == semester:
@@ -997,7 +1006,7 @@ WHERE
     cursor.reset()
 
     return jsonify(data)
-    
+
 
 @app.route("/api/get_staff_id_from_name/<name>", methods=["GET"])
 def get_staff_id_from_name(name):
@@ -1025,11 +1034,12 @@ AND subjects.department = '{department}';'''
     cursor.reset()
     return jsonify(subjects)
 
+
 @app.route("/api/generate/el", methods=["POST"])
 def genRate_el():
     data = request.json
     object_data = data.get('objectData', {})
-    array_data = data.get('leaves', []) 
+    array_data = data.get('leaves', [])
     name = generate_random_string()
     name = name + '.docx'
     temp_dir = 'temp/'
@@ -1039,11 +1049,12 @@ def genRate_el():
     convert(file_path, file_path.replace('.docx', '.pdf'))
     return jsonify(file_path.replace('.docx', '.pdf'))
 
+
 @app.route("/api/generate/cl", methods=["POST"])
 def genRate_cl():
     data = request.json
     object_data = data.get('objectData', {})
-    array_data = data.get('leaves', []) 
+    array_data = data.get('leaves', [])
     name = generate_random_string()
     name = name + '.docx'
     temp_dir = 'temp/'
@@ -1054,14 +1065,17 @@ def genRate_cl():
     os.remove(file_path)
     return jsonify(file_path.replace('.docx', '.pdf'))
 
+
 @app.route('/leave_form', methods=['GET'])
 def leave_form():
     return render_template('leave_form.html')
+
 
 @app.route('/api/download/<folder>/<file>', methods=['GET'])
 def download(folder, file):
     file = f"{folder}/{file}"
     return send_file(file, as_attachment=True)
+
 
 # Ended Sharon Work
 
@@ -1103,8 +1117,8 @@ def get_dates_with_range():
         end = request.form.get("end")
         staff_id = request.form.get("id")
         query = (
-            f"SELECT * FROM `el` WHERE `from` BETWEEN '%s 00:00:00' AND '%s 00:00:00' AND id=%s and `to` BETWEEN '%s 00:00:00' AND '%s 00:00:00';"
-            % (start, end, staff_id, start, end)
+                f"SELECT * FROM `el` WHERE `from` BETWEEN '%s 00:00:00' AND '%s 00:00:00' AND id=%s and `to` BETWEEN '%s 00:00:00' AND '%s 00:00:00';"
+                % (start, end, staff_id, start, end)
         )
         print(query)
         cursor.execute(query)
@@ -1142,6 +1156,7 @@ def get_files():
         # else:
         #     return jsonify({"message": "No files exist"})
 
+
 @app.route("/get_files/<path:path>", methods=["GET", "POST"])
 def get_file(path):
     if request.method == "GET":
@@ -1155,6 +1170,7 @@ def get_file(path):
         else:
             return jsonify({"status": "failed", "message": "File does not exist"})
 
+
 @app.route('/get_el_earned/', methods=["POST"])
 def send_el_earned():
     if request.method == "POST":
@@ -1166,6 +1182,7 @@ def send_el_earned():
         after_probation['working_to'] = after_probation['working_to'].apply(lambda x: x.strftime("%Y-%m-%d"))
         # print(bef_probation.T.to_dict())
         return jsonify({"before": bef_probation.T.to_dict(), "after": after_probation.T.to_dict()})
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

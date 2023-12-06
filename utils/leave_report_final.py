@@ -123,7 +123,7 @@ def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
                     to_date = datetime.datetime.strptime(i[1], '%Y-%m-%d')
                     total_vl += (to_date - from_date).days + 1
     vl_prevention = 60 - (total_period - total_vl)
-    return round(vl_prevention/3) if vl_prevention >= 0 else 0
+    return round(vl_prevention / 3) if vl_prevention >= 0 else 0
 
 
 def calculate_leave(id, cursor):
@@ -214,6 +214,8 @@ def gen_excel(data, id, workbook=None):
     worksheet = workbook.add_worksheet(name="Leave Calculation")
     cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
+    date_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+                                       'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
     bold_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
                                        'border_color': 'black'})
     el_format = workbook.add_format(
@@ -228,6 +230,25 @@ def gen_excel(data, id, workbook=None):
     lop_format = workbook.add_format(
         {'bold': True, 'bg_color': '#ff00fe', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
          'border_color': 'black'})
+    el_date_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#FFFF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
+    ml_date_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#00FF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
+    mtl_date_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#009eff', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
+    lop_date_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#ff00fe', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
+
+    leave_date_format = {
+        "el": el_date_format,
+        "ml": ml_date_format,
+        "mtl": mtl_date_format,
+        "lop": lop_date_format
+    }
     leave_format = {
         "el": el_format,
         "ml": ml_format,
@@ -266,18 +287,21 @@ def gen_excel(data, id, workbook=None):
     for i in range(len(data)):
         row = data.iloc[i].tolist()
         if row[2] == 0:
-            worksheet.write_row(i + 4, 0,
-                                [row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + ['',
-                                                                                              f'=B{i + 5}-A{i + 5}+1',
-                                                                                              f'=ROUND(D{i + 5}/11,0)',
-                                                                                              f'=ROUND(D{i + 5}/18,0)',
-                                                                                              f'=E{i + 5}-F{i + 5}'] + [
+            worksheet.write_row(i + 4, 0, [row[0], row[1]], date_format)
+            worksheet.write_row(i + 4, 2,
+                                ['',
+                                 f'=B{i + 5}-A{i + 5}+1',
+                                 f'=ROUND(D{i + 5}/11,0)',
+                                 f'=ROUND(D{i + 5}/18,0)',
+                                 f'=E{i + 5}-F{i + 5}'] + [
                                     '=G5' if i == 0 else f'=H{i + 4}+G{i + 5}'],
 
                                 cell_format)
         elif row[2] in ['el', 'ml', 'mtl', 'lop']:
-            worksheet.write_row(i + 4, 0,
-                                [row[2].upper(), row[0].strftime("%d-%m-%Y"), row[1].strftime("%d-%m-%Y")] + [
+            worksheet.write(i + 4, 0, row[2].upper(), leave_format[row[2]])
+            worksheet.write_row(i+4, 1, [row[0], row[1]], leave_date_format[row[2]])
+            worksheet.write_row(i + 4, 3,
+                                [
                                     f'=C{i + 5}-B{i + 5}+1'] + row[4:-1] + [
                                     '=D5' if i == 0 else (f'=H{i + 4}-D{i + 5}' if row[2] == 'el' else f'=H{i + 4}')],
                                 leave_format[row[2]])
