@@ -92,9 +92,20 @@ def get_other_leaves(id, cursor):
 
 def set_other_leaves(id, cursor, data):
     other_leaves = get_other_leaves(id, cursor)
+    print(other_leaves)
+    print(data)
+    data.to_excel("data.xlsx")
     for i in other_leaves:
-        l_type, s_id, from_date = i.split('_')
-        data.loc[data["Availed From"] == from_date, "others"] = l_type
+        l_type, s_id, l_from = i.split('_')
+        data.loc[data["Availed From"] == datetime.strptime(l_from, "%Y-%m-%d").strftime("%d-%m-%Y"), "others"] = l_type
+        # for i in range(len(data)):
+        #     if data.iloc[i]["Availed From"] == datetime.strptime(l_from, "%Y-%m-%d").strftime("%d-%m-%Y"):
+        #         print(data.iloc[i]["Availed From"], l_from)
+        #         # print(data.at[i, "Availed From"], l_from)
+        #         data.iloc[i, "others"] = l_type
+        #         break
+    print(data)
+
 
 
 def generate_excel(data, id, name, dept, doj, workbook, cursor):
@@ -193,28 +204,28 @@ def generate_excel(data, id, name, dept, doj, workbook, cursor):
             "preven": 0
         }
         for items in values:
-            avail_sum = (datetime.strptime(items['Availed To'], "%Y-%m-%d") - datetime.strptime(items['Availed From'],
-                                                                                                "%Y-%m-%d")).days + 1 if \
+            avail_sum = (datetime.strptime(items['Availed To'], "%d-%m-%Y") - datetime.strptime(items['Availed From'],
+                                                                                                "%d-%m-%Y")).days + 1 if \
                 items['Availed From'] not in ['', 'NULL'] and items['Availed To'] not in ['', 'NULL'] else 0
-            preven_sum = (datetime.strptime(items['Prevented To'], "%Y-%m-%d") - datetime.strptime(
+            preven_sum = (datetime.strptime(items['Prevented To'], "%d-%m-%Y") - datetime.strptime(
                 items['Prevented From'],
-                "%Y-%m-%d")).days + 1 if \
+                "%d-%m-%Y")).days + 1 if \
                 items['Prevented From'] not in ['', 'NULL'] and items['Prevented To'] not in ['', 'NULL'] else 0
             props["avail"] += avail_sum
             props["preven"] += preven_sum
-            availed_from = datetime.strptime(items['Availed From'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+            availed_from = datetime.strptime(items['Availed From'], "%d-%m-%Y").strftime("%d-%m-%Y") if items[
                                                                                                             'Availed From'] not in [
                                                                                                             '',
                                                                                                             'NULL'] else '-'
-            availed_to = datetime.strptime(items['Availed To'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+            availed_to = datetime.strptime(items['Availed To'], "%d-%m-%Y").strftime("%d-%m-%Y") if items[
                                                                                                         'Availed To'] not in [
                                                                                                         '',
                                                                                                         'NULL'] else '-'
-            prevented_from = datetime.strptime(items['Prevented From'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+            prevented_from = datetime.strptime(items['Prevented From'], "%d-%m-%Y").strftime("%d-%m-%Y") if items[
                                                                                                                 'Prevented From'] not in [
                                                                                                                 '',
                                                                                                                 'NULL'] else '-'
-            prevented_to = datetime.strptime(items['Prevented To'], "%Y-%m-%d").strftime("%d-%m-%Y") if items[
+            prevented_to = datetime.strptime(items['Prevented To'], "%d-%m-%Y").strftime("%d-%m-%Y") if items[
                                                                                                             'Prevented To'] not in [
                                                                                                             '',
                                                                                                             'NULL'] else '-'
@@ -248,8 +259,8 @@ def generate_excel(data, id, name, dept, doj, workbook, cursor):
                                       year_format[year_type])
             sums = {"row": 0, "avail": 0, "preven": 0}
 
-        from_date = datetime.strptime(from_date, "%Y-%m-%d") if from_date else '-'
-        to_date = datetime.strptime(to_date, "%Y-%m-%d") if to_date else '-'
+        from_date = datetime.strptime(from_date, "%d-%m-%Y") if from_date else '-'
+        to_date = datetime.strptime(to_date, "%d-%m-%Y") if to_date else '-'
         if props["row"] == row - 1:
             worksheet.write(f"C{props['row']}", from_date.strftime("%d-%m-%Y") if from_date != '-' else '-',
                             year_format[year_type])
@@ -296,9 +307,9 @@ def convert_data(data):
         if year_key not in converted_data:
             converted_data[year_key] = []
         if value['from'] is not None and value['from']:
-            value['from'] = value['from'].strftime("%Y-%m-%d")
+            value['from'] = value['from'].strftime("%d-%m-%Y")
         if value['from'] is not None and value['from']:
-            value['to'] = value['to'].strftime("%Y-%m-%d")
+            value['to'] = value['to'].strftime("%d-%m-%Y")
         converted_data[year_key].append(value)
     return converted_data
 
@@ -334,7 +345,7 @@ def generate_vl(id, cursor, workbook):
 
 
 if __name__ == "__main__":
-    id = 22007
+    id = 22003
     db = mysql.connector.connect(
         host="localhost", port="3306", user="root", database="facultyleavedb"
     )

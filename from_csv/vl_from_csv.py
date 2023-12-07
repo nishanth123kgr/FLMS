@@ -65,7 +65,7 @@ def generate_gen_vac_details(vl_data, cursor):
 
 def generate_id(data):
     data['id'] = data['Year'].apply(lambda x: extract_year_id(x)) + data['Summer / Winter'].apply(
-        lambda x: x[0])
+        lambda x: ('a' if x[0].lower() == 'w' else 'b') + x[0].upper())
 
 
 def get_start_date(date_range):
@@ -247,14 +247,14 @@ def get_other_leaves(id, type, cursor):
         f"WHERE (a.`to` BETWEEN v.`from` AND v.`to`)"
         f"and a.id={id}")
     leave_data += cursor.fetchall()
+    leave_data = list(set(leave_data))
     cursor.reset()
 
     return leave_data
 
 
 def insert_other_leavedata(id, vl_data, cursor):
-    print(vl_data['Availed From'].iloc[0], type(vl_data['Availed From'].iloc[0]))
-    for leave_type in ['el', 'ml', 'mtl', 'lop']:
+    for leave_type in ['el', 'ml', 'mtl', 'lop', 'sl', 'eol']:
         others = [[from_date, to_date, leave_id, leave_type, v_from, v_to] for
                   from_date, to_date, leave_id, v_from, v_to in
                   get_other_leaves(id, leave_type, cursor)]
@@ -276,11 +276,16 @@ def insert_other_leavedata(id, vl_data, cursor):
                     l_from = i[0]
                     l_to = i[1]
                 new_row = {'Availed From': l_from.strftime("%Y-%m-%d"), 'Availed To': l_to.strftime("%Y-%m-%d"),
-                           'id': i[2], 'others': f'{i[3]}_{id}_{l_from}'}
+                           'id': i[2][:-1] + ('a' if i[2][-1] == 'w' else 'b') + i[2][-1].upper(),
+                           'others': f'{i[3]}_{id}_{l_from}'}
                 new_row = pd.Series(new_row)
                 vl_data.loc[len(vl_data)] = new_row
-    print(vl_data)
     return vl_data
+
+
+def reset_data_id(data):
+    data['id'] = data['id'].apply(lambda x: x[:-2] + x[-1].lower())
+    return data
 
 
 def get_vl(id, file, sheet, cursor):
@@ -299,15 +304,24 @@ def get_vl(id, file, sheet, cursor):
     gen_data = cursor.fetchall()
     cursor.reset()
     gen_data = pd.DataFrame(gen_data, columns=['id', 'from', 'to'])
+
+    gen_data['id'] = gen_data['id'].apply(
+        lambda x: x[:-1] + ('a' if x[-1] == 'w' else 'b') + x[-1].upper())
     gen_data = pd.merge(gen_data, vl_data, on='id', how='inner')
+
+    gen_data = gen_data.sort_values(by=['id', 'Availed From'])
+    gen_data.reset_index(drop=True, inplace=True)
+    reset_data_id(gen_data)
     print(gen_data)
     grouped = gen_data.groupby('id').apply(group_to_dict).to_dict()
-    return generate_prevention_details(grouped).to_dict()
+    final = generate_prevention_details(grouped)
+    print(final.to_dict())
+    return final.to_dict()
 
 
 if __name__ == "__main__":
     mydb = mysql.connector.connect(host="localhost", port="3306", user="root",
                                    database="facultyleavedb")
-    id = '22003'
+    id = '25009'
     db_cursor = mydb.cursor()
-    print(get_vl(id, '../01-Mrs.T.Kavitha-29.11.2023.xlsx', "Vl-oc (2)", db_cursor))
+    print(get_vl(id, '../25009-Rajakumar  - 05.09.2023.xlsx', "VL", db_cursor))

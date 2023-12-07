@@ -11,7 +11,7 @@ def get_ml_mtl_lop(file, sheet_name):
     df = df.reset_index(drop=True)
 
     # Extract rows
-    ml, mtl, lop = [], [], []
+    ml, mtl, lop, sl, eol = [], [], [], [], []
     for index, row in df.iterrows():
         row = list(map(str, row.fillna("NULL").tolist()))
         row = list(map(str.strip, row))
@@ -23,17 +23,20 @@ def get_ml_mtl_lop(file, sheet_name):
         row = [convert_to_desired_format(str(date_str)) for date_str in row]
         row[4] = separate_prefix_suffix(row[0], row[1], row[4])
         if leave_type not in ["el", "-"]:
-            print(row)
             if leave_type == "ml":
                 ml.append(row)
             elif leave_type == "mtl":
                 mtl.append(row)
             elif leave_type == "lop":
                 lop.append(row)
+            elif leave_type == "sl":
+                sl.append(row)
+            elif leave_type == "eol":
+                eol.append(row)
 
-    return ml, mtl, lop
+    return ml, mtl, lop, sl, eol
 
 
 if __name__ == "__main__":
-    ml_data, mtl_data, lop_data = get_ml_mtl_lop("../Dr.R.Banumathi-14.11.2023.xlsx", 'EL')
-    print(ml_data)
+    ml_data, mtl_data, lop_data, sl_data, eol_data = get_ml_mtl_lop("../Mrs. C . Jayalakshmi -29.11.2023.xlsx", 'EL')
+    print(eol_data)

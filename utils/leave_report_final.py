@@ -119,8 +119,8 @@ def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
                 prevented[0][0])
             for i in prevented:
                 if i[0] and i[1]:
-                    from_date = datetime.datetime.strptime(i[0], '%Y-%m-%d')
-                    to_date = datetime.datetime.strptime(i[1], '%Y-%m-%d')
+                    from_date = datetime.datetime.strptime(i[0], '%d-%m-%Y')
+                    to_date = datetime.datetime.strptime(i[1], '%d-%m-%Y')
                     total_vl += (to_date - from_date).days + 1
     vl_prevention = 60 - (total_period - total_vl)
     return round(vl_prevention / 3) if vl_prevention >= 0 else 0
@@ -156,7 +156,7 @@ def calculate_leave(id, cursor):
     result = []
     for i in range(len(df)):
         leaves = []
-        for type in ["el", "ml", "mtl", "lop"]:
+        for type in ["el", "ml", "mtl", "lop", "sl", "eol"]:
             leaves.extend(
                 leave_availed(cursor, id, type, df.at[i, "from"], df.at[i, "to"])
             )
@@ -230,6 +230,12 @@ def gen_excel(data, id, workbook=None):
     lop_format = workbook.add_format(
         {'bold': True, 'bg_color': '#ff00fe', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
          'border_color': 'black'})
+    sl_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#0ab9a2', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black'})
+    eol_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#fcc77a', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black'})
     el_date_format = workbook.add_format(
         {'bold': True, 'bg_color': '#FFFF00', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
          'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
@@ -242,18 +248,28 @@ def gen_excel(data, id, workbook=None):
     lop_date_format = workbook.add_format(
         {'bold': True, 'bg_color': '#ff00fe', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
          'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
+    sl_date_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#0ab9a2', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
+    eol_date_format = workbook.add_format(
+        {'bold': True, 'bg_color': '#fcc77a', 'align': 'center', 'valign': 'vcenter', 'border': 1,  # 1-pt border
+         'border_color': 'black', 'num_format': 'dd-mm-yyyy'})
 
     leave_date_format = {
         "el": el_date_format,
         "ml": ml_date_format,
         "mtl": mtl_date_format,
-        "lop": lop_date_format
+        "lop": lop_date_format,
+        "sl": sl_date_format,
+        "eol": eol_date_format
     }
     leave_format = {
         "el": el_format,
         "ml": ml_format,
         "mtl": mtl_format,
-        "lop": lop_format
+        "lop": lop_format,
+        "sl": sl_format,
+        "eol": eol_format
     }
     details_rows = 3
     worksheet.write(0, 0, "Name", cell_format)
@@ -297,7 +313,7 @@ def gen_excel(data, id, workbook=None):
                                     '=G5' if i == 0 else f'=H{i + 4}+G{i + 5}'],
 
                                 cell_format)
-        elif row[2] in ['el', 'ml', 'mtl', 'lop']:
+        elif row[2] in ['el', 'ml', 'mtl', 'lop', 'sl', 'eol']:
             worksheet.write(i + 4, 0, row[2].upper(), leave_format[row[2]])
             worksheet.write_row(i+4, 1, [row[0], row[1]], leave_date_format[row[2]])
             worksheet.write_row(i + 4, 3,
