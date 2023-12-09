@@ -140,7 +140,7 @@ def generate_report(cursor, id, workbook, need_attendance=False, need_remarks=''
     worksheet.merge_range(*merge_ranges[2], 'Designation', cell_format_left)
     worksheet.merge_range(*merge_ranges[3], '', cell_format_left)
     worksheet.merge_range(*merge_ranges[4], 'Department', cell_format_left)
-    worksheet.merge_range(*merge_ranges[5], data[0][2], cell_format_left)
+    worksheet.merge_range(*merge_ranges[5], "MBA" if data[0][2] == "MS" else data[0][2], cell_format_left)
     worksheet.merge_range(*merge_ranges[6], 'Date of joining in service', cell_format_left)
     worksheet.merge_range(*merge_ranges[7], data[0][3].strftime('%d-%m-%Y'), cell_format_left)
     worksheet.merge_range(*merge_ranges[8], 'Campus', cell_format_left)

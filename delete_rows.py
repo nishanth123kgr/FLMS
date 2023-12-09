@@ -28,11 +28,11 @@ cursor = db.cursor()
 # db.commit()
 #
 for j in ['el', 'ml', 'mtl', 'lop', 'sl', 'eol']:
-    query = f"delete from {j} where id=21006"
+    query = f"delete from {j} where id=21003"
     cursor.execute(query)
     db.commit()
 
-query = f"delete from vl where staff_id=21006"
+query = f"delete from vl where staff_id=21003"
 cursor.execute(query)
 db.commit()
 

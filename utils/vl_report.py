@@ -94,7 +94,6 @@ def set_other_leaves(id, cursor, data):
     other_leaves = get_other_leaves(id, cursor)
     print(other_leaves)
     print(data)
-    data.to_excel("data.xlsx")
     for i in other_leaves:
         l_type, s_id, l_from = i.split('_')
         data.loc[data["Availed From"] == datetime.strptime(l_from, "%Y-%m-%d").strftime("%d-%m-%Y"), "others"] = l_type
@@ -322,6 +321,7 @@ def get_staff_details(id, cursor):
 
 def generate_vl(id, cursor, workbook):
     name, dept, doj = get_staff_details(id, cursor)
+    dept = "MBA" if dept == "MS" else dept
     prevention, availed = get_vl_details(id, cursor)
     general_details = get_general_details(id, cursor)
     general_details["Year"] = general_details["Year"].apply(

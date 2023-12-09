@@ -20,6 +20,7 @@ def set_staff_data(cursor, id):
     name = data[0][1]
     doj = data[0][0]
     dept = data[0][2]
+    dept = "MBA" if dept == "MS" else dept
     leaved = data[0][3]
 
 
@@ -101,7 +102,8 @@ def g(df, leaves, i):
 
 
 def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
-    year = to_date
+    print(to_date)
+    year = to_date.year + 1 if to_date.month >= 11 else to_date.year
     vl_id = f'{str(year - 1)[2:]}-{str(year)[2:]}'
     total_vl = 0
     total_period = 0
@@ -111,7 +113,10 @@ def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
         prevented = cursor.fetchall()
         cursor.reset()
         cursor.execute(f"select total_days from general_vacation_details where v_id='{vl_id + i}'")
-        total_period += cursor.fetchone()[0]
+        current_year_total = cursor.fetchone()
+        if current_year_total is None:
+            return 0
+        total_period += current_year_total[0]
         cursor.reset()
         if len(prevented) > 0:
             prevented = ast.literal_eval(prevented[0][0].decode('utf-8')) if not isinstance(prevented[0][0],
@@ -122,7 +127,7 @@ def calc_vl_prevented_total(to_date, staff_id, cursor, dt):
                     from_date = datetime.datetime.strptime(i[0], '%d-%m-%Y')
                     to_date = datetime.datetime.strptime(i[1], '%d-%m-%Y')
                     total_vl += (to_date - from_date).days + 1
-    vl_prevention = 60 - (total_period - total_vl)
+    vl_prevention = (60 if total_period >= 60 else total_period) - (total_period - total_vl)
     return round(vl_prevention / 3) if vl_prevention >= 0 else 0
 
 
@@ -183,12 +188,12 @@ def calculate_leave(id, cursor):
     calc["*/11-*/18"] = calc["*/11"] - calc["*/18"]
     if leaved:
         calc["vl_prevented"] = calc["to"].apply(
-            lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6,
-                                                                                               30) or x.strftime(
-                "%d-%m-%Y") == (leaved.strftime("%d-%m-%Y") if leaved else False) else '-')
+            lambda x: calc_vl_prevented_total(x, id, cursor, x) if (x == datetime.datetime(x.year, 6,
+                                                                                                30) or x.strftime(
+                "%d-%m-%Y") == (leaved.strftime("%d-%m-%Y")) and x.month >= 11 if leaved else False) else '-')
     else:
         calc["vl_prevented"] = calc["to"].apply(
-            lambda x: calc_vl_prevented_total(x.year, id, cursor, x) if x == datetime.datetime(x.year, 6,
+            lambda x: calc_vl_prevented_total(x, id, cursor, x) if x == datetime.datetime(x.year, 6,
                                                                                                30) else '-')
 
     total = 0
@@ -294,8 +299,9 @@ def gen_excel(data, id, workbook=None):
     for i in range(len(data)):
         row_values = data.iloc[i].copy().tolist()
         rows.append(row_values)
-        if data.at[i, 'to'].strftime("%d-%m") == '30-06' or i == len(data) - 1:
-            rows.append(["Add Vacation", f'{data["to"].iloc[i].year - 1}-{data["to"].iloc[i].year}', '',
+        if data.at[i, 'to'].strftime("%d-%m") == '30-06' or i == len(data) - 1 and data.at[i, 'vl_prevented'] != '-':
+            acad_year = data["to"].iloc[i].year + 1 if data.at[i, 'to'].month > 6 else data["to"].iloc[i].year
+            rows.append(["Add Vacation", f'{acad_year - 1}-{acad_year}', '',
                          data.at[i, 'vl_prevented'],
                          '', '', '', '', data.at[i, 'vl_prevented'] + data.at[i, 'total']])
     data = pd.DataFrame(rows, columns=["from", "to", "type", "days", "/11", "/18", "/11-/18", "vl", "total"])
@@ -315,7 +321,7 @@ def gen_excel(data, id, workbook=None):
                                 cell_format)
         elif row[2] in ['el', 'ml', 'mtl', 'lop', 'sl', 'eol']:
             worksheet.write(i + 4, 0, row[2].upper(), leave_format[row[2]])
-            worksheet.write_row(i+4, 1, [row[0], row[1]], leave_date_format[row[2]])
+            worksheet.write_row(i + 4, 1, [row[0], row[1]], leave_date_format[row[2]])
             worksheet.write_row(i + 4, 3,
                                 [
                                     f'=C{i + 5}-B{i + 5}+1'] + row[4:-1] + [
@@ -351,7 +357,7 @@ if __name__ == "__main__":
     # ids = [13331, 13332, 27002]  # MCA
     # ids = [25030, 25012, 25009, 12223, 25010, 25005, 12222, 25019, 25007, 25001]  # MECH
     # ids = [32546, 22021]
-    ids = [22003]
+    ids = [22223]
     for i in ids:
         workbook = xlsxwriter.Workbook(f'./new/{i}.xlsx')
         generate_consolidated_report(i, cursor, workbook)

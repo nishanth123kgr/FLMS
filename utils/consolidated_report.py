@@ -8,10 +8,11 @@ import os
 
 def consolidated_report(id, cursor):
     name, dept, doj = get_staff_details(id, cursor)
-    print(name, dept, doj, f"Consolidated_Reports/{dept}")
-    if not os.path.exists(f"Consolidated_Reports/{dept}"):
-        os.makedirs(f"Consolidated_Reports/{dept}")
-    workbook = xlsxwriter.Workbook(f"Consolidated_Reports/{dept}/{id}-{name.strip().replace(' ', '')}.xlsx")
+    dir_path = f"H:/My Drive/AURCT_Leave_Particulars/{dept}"
+    print(name, dept, doj, dir_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    workbook = xlsxwriter.Workbook(f"{dir_path}/{id}-{name.strip().replace(' ', '')}.xlsx")
     generate_consolidated_report(id, cursor, workbook)
     generate_vl(id, cursor, workbook)
     generate_report(cursor,id, workbook)
@@ -34,7 +35,7 @@ if __name__ == '__main__':
     other_ids = [32546, 22021]
 
     combined_array = civil_ids + snh_ids + cse_ids + ece_ids + mba_ids + mca_ids + mech_ids + other_ids
-
+    combined_array = [21003]
     print(combined_array)
     for id in combined_array:
         print(id)
